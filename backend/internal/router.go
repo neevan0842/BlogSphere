@@ -10,6 +10,8 @@ import (
 	envs "github.com/neevan0842/BlogSphere/backend/config"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/auth"
+
+	// mw "github.com/neevan0842/BlogSphere/backend/internal/middleware"
 	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 )
@@ -64,17 +66,23 @@ func (app *application) Mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	//
+	authService := auth.NewService(sqlc.New(app.db), app.db)
+	authHandler := auth.NewHandler(authService, app.logger)
+
+	// authMiddleware := mw.NewMiddleware(sqlc.New(app.db), app.logger)
+
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
-		authService := auth.NewService(sqlc.New(app.db), app.db)
-		authHandler := auth.NewHandler(authService, app.logger)
-		authHandler.RegisterRoutes(r)
-		// orderService := orders.NewService(repo.New(app.db), app.db)
-		// ordersHandler := orders.NewHandler(orderService)
-		// r.Post("/orders", ordersHandler.PlaceOrder)
+		r.Route("/auth", func(r chi.Router) {
+			r.Get("/google", authHandler.HandleGoogleLogin)
+			r.Get("/google/callback", authHandler.HandleGoogleAuthCallback)
+			r.Get("/logout", authHandler.HandleLogout)
+			r.Get("/refresh", authHandler.HandleRefresh)
+		})
 	})
 
 	return r

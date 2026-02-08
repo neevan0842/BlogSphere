@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var Validate = validator.New()
@@ -25,4 +26,13 @@ func WriteJSON(w http.ResponseWriter, status int, payload any) error {
 
 func WriteError(w http.ResponseWriter, status int, err error) error {
 	return WriteJSON(w, status, map[string]string{"error": err.Error()})
+}
+
+func StrToUUID(str string) (pgtype.UUID, error) {
+	var uuid pgtype.UUID
+	err := uuid.Scan(str)
+	if err != nil {
+		return pgtype.UUID{}, fmt.Errorf("invalid uuid string: %s", err.Error())
+	}
+	return uuid, nil
 }
