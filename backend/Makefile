@@ -8,11 +8,11 @@ DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTG
 
 # Run migrations up
 migrate-up:
-	migrate -path database/migrations -database "$(DB_URL)" -verbose up $(filter-out $@,$(MAKECMDGOALS))
+	@migrate -path database/migrations -database "$(DB_URL)" -verbose up $(filter-out $@,$(MAKECMDGOALS))
 
 # Rollback migrations
 migrate-down:
-	migrate -path database/migrations -database "$(DB_URL)" -verbose down $(filter-out $@,$(MAKECMDGOALS))
+	@migrate -path database/migrations -database "$(DB_URL)" -verbose down $(filter-out $@,$(MAKECMDGOALS))
 
 # Create a new migration file
 migrate-create:
@@ -20,25 +20,25 @@ migrate-create:
 
 # Check migration version
 migrate-version:
-	migrate -path database/migrations -database "$(DB_URL)" version
+	@migrate -path database/migrations -database "$(DB_URL)" version
 
 # Generate sqlc code
 sqlc-generate:
-	sqlc generate
+	@sqlc generate
 
 # Run the application
-run:
-	go run cmd/api/main.go
+run: build
+	@./bin/api
 
 # Build the application
 build:
-	go build -o bin/api cmd/api/main.go
+	@go build -o bin/api cmd/api/main.go
 
 # Run tests
 test:
-	go test -v ./...
+	@go test -v ./...
 
 # Install dependencies
 deps:
-	go mod download
-	go mod tidy
+	@go mod download
+	@go mod tidy
