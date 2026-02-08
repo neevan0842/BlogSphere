@@ -70,7 +70,7 @@ func (app *application) Mount() http.Handler {
 
 	r.Route("/api/v1", func(r chi.Router) {
 		authService := auth.NewService(sqlc.New(app.db), app.db)
-		authHandler := auth.NewHandler(authService)
+		authHandler := auth.NewHandler(authService, app.logger)
 		authHandler.RegisterRoutes(r)
 		// orderService := orders.NewService(repo.New(app.db), app.db)
 		// ordersHandler := orders.NewHandler(orderService)

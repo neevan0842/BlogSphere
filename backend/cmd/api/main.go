@@ -31,8 +31,8 @@ func main() {
 	log.Info("connected to database pool successfully")
 
 	// API Server
-	api := internal.NewAPIServer(config.Envs.ADDR, pool, log)
+	server := internal.NewAPIServer(config.Envs.ADDR, pool, log)
 
 	// Run the server
-	log.Fatal(api.Run(api.Mount()))
+	log.Fatal(server.Run(server.Mount()))
 }

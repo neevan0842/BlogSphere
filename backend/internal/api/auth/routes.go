@@ -7,17 +7,16 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/neevan0842/BlogSphere/backend/config"
-	"github.com/neevan0842/BlogSphere/backend/logger"
 	"github.com/neevan0842/BlogSphere/backend/utils"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
 type handler struct {
 	service Service
+	logger  *zap.SugaredLogger
 }
-
-var log = logger.Get()
 
 var googleOauthConfig = &oauth2.Config{
 	ClientID:     config.Envs.GOOGLE_CLIENT_ID,
@@ -27,9 +26,10 @@ var googleOauthConfig = &oauth2.Config{
 	Endpoint:     google.Endpoint,
 }
 
-func NewHandler(service Service) *handler {
+func NewHandler(service Service, logger *zap.SugaredLogger) *handler {
 	return &handler{
 		service: service,
+		logger:  logger,
 	}
 }
 
@@ -55,13 +55,13 @@ func (h *handler) handleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 	oauthState, err := r.Cookie("oauthstate")
 
 	if err != nil {
-		log.Error("could not read oauthstate cookie: %s", err.Error())
+		h.logger.Error("could not read oauthstate cookie: %s", err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
 		return
 	}
 
 	if r.FormValue("state") != oauthState.Value {
-		log.Error("invalid oauth google state")
+		h.logger.Error("invalid oauth google state")
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
 		return
 	}
@@ -69,14 +69,14 @@ func (h *handler) handleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 	// Convert to createOrUpdateUserParams
 	userData, err := h.service.getUserDataFromGoogle(r.FormValue("code"))
 	if err != nil {
-		log.Error(err.Error())
+		h.logger.Error(err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
 		return
 	}
 
 	user, err := h.service.createOrUpdateUser(context.Background(), userData)
 	if err != nil {
-		log.Error(err.Error())
+		h.logger.Error(err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
 		return
 	}
@@ -84,7 +84,7 @@ func (h *handler) handleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 	// Generate JWT tokens
 	accessToken, refreshToken, err := utils.GetAccessAndRefreshTokens(user.ID.String())
 	if err != nil {
-		log.Error(err.Error())
+		h.logger.Error(err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not generate tokens"))
 		return
 	}

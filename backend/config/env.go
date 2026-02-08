@@ -41,19 +41,28 @@ func initConfig() Config {
 	godotenv.Load()
 
 	return Config{
-		POSTGRES_USER:                getEnv("POSTGRES_USER", "postgres"),
-		POSTGRES_PASSWORD:            getEnv("POSTGRES_PASSWORD", "password"),
-		POSTGRES_HOST:                getEnv("POSTGRES_HOST", "localhost"),
-		POSTGRES_PORT:                getEnv("POSTGRES_PORT", "5433"),
-		POSTGRES_DB:                  getEnv("POSTGRES_DB", "blogsphere"),
-		DATABASE_URL:                 getEnv("DATABASE_URL", ""),
-		ADDR:                         getEnv("ADDR", ":8080"),
-		DB_MAX_OPEN_CONNS:            int32(getEnvAsInt("DB_MAX_OPEN_CONNS", 30)),
-		DB_MAX_IDLE_CONNS:            int32(getEnvAsInt("DB_MAX_IDLE_CONNS", 30)),
-		DB_MAX_IDLE_TIME:             getEnv("DB_MAX_IDLE_TIME", "15m"),
-		GOOGLE_CLIENT_ID:             getEnv("GOOGLE_CLIENT_ID", ""),
-		GOOGLE_CLIENT_SECRET:         getEnv("GOOGLE_CLIENT_SECRET", ""),
-		GOOGLE_REDIRECT_URI:          getEnv("GOOGLE_REDIRECT_URI", ""),
+		// Database configuration
+		POSTGRES_USER:     getEnv("POSTGRES_USER", "postgres"),
+		POSTGRES_PASSWORD: getEnv("POSTGRES_PASSWORD", "password"),
+		POSTGRES_HOST:     getEnv("POSTGRES_HOST", "localhost"),
+		POSTGRES_PORT:     getEnv("POSTGRES_PORT", "5433"),
+		POSTGRES_DB:       getEnv("POSTGRES_DB", "blogsphere"),
+		DATABASE_URL:      getEnv("DATABASE_URL", ""),
+
+		// Server configuration
+		ADDR: getEnv("ADDR", ":8080"),
+
+		// Database connection pool configuration
+		DB_MAX_OPEN_CONNS: int32(getEnvAsInt("DB_MAX_OPEN_CONNS", 30)),
+		DB_MAX_IDLE_CONNS: int32(getEnvAsInt("DB_MAX_IDLE_CONNS", 30)),
+		DB_MAX_IDLE_TIME:  getEnv("DB_MAX_IDLE_TIME", "15m"),
+
+		// Google OAuth configuration
+		GOOGLE_CLIENT_ID:     getEnv("GOOGLE_CLIENT_ID", ""),
+		GOOGLE_CLIENT_SECRET: getEnv("GOOGLE_CLIENT_SECRET", ""),
+		GOOGLE_REDIRECT_URI:  getEnv("GOOGLE_REDIRECT_URI", ""),
+
+		// JWT Configuration
 		JWT_SECRET:                   getEnv("JWT_SECRET", ""),
 		ACCESS_TOKEN_EXPIRE_MINUTES:  getEnvAsInt("ACCESS_TOKEN_EXPIRE_MINUTES", 1440),
 		REFRESH_TOKEN_EXPIRE_MINUTES: getEnvAsInt("REFRESH_TOKEN_EXPIRE_MINUTES", 10080),
