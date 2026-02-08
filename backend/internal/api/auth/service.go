@@ -76,6 +76,14 @@ func (s *svc) createOrUpdateUser(ctx context.Context, arg sqlc.CreateOrUpdateUse
 	return user, nil
 }
 
+func (s *svc) GetUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error) {
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return sqlc.User{}, fmt.Errorf("failed to get user by ID: %s", err.Error())
+	}
+	return user, nil
+}
+
 func parseGoogleUserData(data []byte) (*GoogleUserResponse, error) {
 	var googleUser GoogleUserResponse
 	err := json.Unmarshal(data, &googleUser)

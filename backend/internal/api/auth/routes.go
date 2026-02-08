@@ -93,5 +93,27 @@ func (h *handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement token refresh logic
+	userIDUUID, err := utils.GetUserIDFromToken(w, r, "refresh_token")
+	if err != nil {
+		h.logger.Errorf("invalid userID in refresh token: %s", err.Error())
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid token"))
+		return
+	}
+
+	// check if user exists in database
+	_, err = h.service.GetUserByID(r.Context(), userIDUUID)
+	if err != nil {
+		h.logger.Errorf("failed to get user from database: %s", err.Error())
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid token"))
+		return
+	}
+	// Generate new access token
+	accessToken, _, err := utils.GetAccessAndRefreshTokens(userIDUUID.String())
+	if err != nil {
+		h.logger.Error(err.Error())
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not generate access token"))
+		return
+	}
+	utils.SetCookie(w, "access_token", accessToken, config.Envs.ACCESS_TOKEN_EXPIRE_MINUTES)
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "Successfully refreshed access token"})
 }

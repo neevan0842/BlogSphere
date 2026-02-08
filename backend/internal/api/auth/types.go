@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 )
 
@@ -11,6 +12,7 @@ type Service interface {
 	generateStateOauthCookie(w http.ResponseWriter) string
 	getUserDataFromGoogle(code string) (sqlc.CreateOrUpdateUserParams, error)
 	createOrUpdateUser(ctx context.Context, arg sqlc.CreateOrUpdateUserParams) (sqlc.CreateOrUpdateUserRow, error)
+	GetUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error)
 }
 
 type GoogleUserResponse struct {

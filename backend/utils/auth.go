@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/neevan0842/BlogSphere/backend/config"
 )
 
@@ -66,7 +67,33 @@ func PermissionDenied(w http.ResponseWriter) {
 	WriteError(w, http.StatusForbidden, fmt.Errorf("permission denied"))
 }
 
-func ValidateJWT(tokenString string) (*jwt.Token, error) {
+func GetUserIDFromToken(w http.ResponseWriter, r *http.Request, name string) (pgtype.UUID, error) {
+	tokenString := getTokenFromRequest(r, name)
+	if tokenString == "" {
+		PermissionDenied(w)
+		return pgtype.UUID{}, fmt.Errorf("missing token")
+	}
+	token, err := validateJWT(tokenString)
+	if err != nil || !token.Valid {
+		PermissionDenied(w)
+		return pgtype.UUID{}, fmt.Errorf("invalid token: %s", err.Error())
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	userID, ok := claims["userID"].(string)
+	if !ok {
+		PermissionDenied(w)
+		return pgtype.UUID{}, fmt.Errorf("invalid token claims: userID not found")
+	}
+	userIDUUID, err := StrToUUID(userID)
+	if err != nil {
+		PermissionDenied(w)
+		return pgtype.UUID{}, fmt.Errorf("invalid userID in token: %s", err.Error())
+	}
+	return userIDUUID, nil
+}
+
+func validateJWT(tokenString string) (*jwt.Token, error) {
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -76,7 +103,7 @@ func ValidateJWT(tokenString string) (*jwt.Token, error) {
 	})
 }
 
-func GetTokenFromRequest(r *http.Request, name string) string {
+func getTokenFromRequest(r *http.Request, name string) string {
 	cookie, err := r.Cookie(name)
 	if err != nil {
 		return ""
