@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -36,38 +37,72 @@ func (h *handler) RegisterRoutes(r chi.Router) {
 	r.Route("/auth", func(r chi.Router) {
 		r.Get("/google", h.handleGoogleLogin)
 		r.Get("/google/callback", h.handleGoogleAuthCallback)
+		// TODO: add auth middleware to protect this route
+		r.Get("/refresh", h.handleRefresh)
 		r.Get("/logout", h.handleLogout)
 	})
 }
 
 func (h *handler) handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	// Create oauthState cookie
-	oauthState := generateStateOauthCookie(w)
+	oauthState := h.service.generateStateOauthCookie(w)
 	url := googleOauthConfig.AuthCodeURL(oauthState)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
 func (h *handler) handleGoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	// Read oauthState from Cookie
-	oauthState, _ := r.Cookie("oauthstate")
+	oauthState, err := r.Cookie("oauthstate")
+
+	if err != nil {
+		log.Error("could not read oauthstate cookie: %s", err.Error())
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
+		return
+	}
 
 	if r.FormValue("state") != oauthState.Value {
 		log.Error("invalid oauth google state")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
 		return
 	}
 
-	data, err := getUserDataFromGoogle(r.FormValue("code"))
+	// Convert to createOrUpdateUserParams
+	userData, err := h.service.getUserDataFromGoogle(r.FormValue("code"))
 	if err != nil {
 		log.Error(err.Error())
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
 		return
 	}
 
-	// TODO: Create or update user in database and generate JWT token and set it in cookie
-	// TODO: Redirect to frontend with token in cookie
-	fmt.Println(string(data))
-	utils.WriteJSON(w, http.StatusOK, data)
+	user, err := h.service.createOrUpdateUser(context.Background(), userData)
+	if err != nil {
+		log.Error(err.Error())
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
+		return
+	}
+
+	// Generate JWT tokens
+	accessToken, refreshToken, err := utils.GetAccessAndRefreshTokens(user.ID.String())
+	if err != nil {
+		log.Error(err.Error())
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not generate tokens"))
+		return
+	}
+	// Set tokens in cookies
+	utils.SetCookie(w, "access_token", accessToken, config.Envs.ACCESS_TOKEN_EXPIRE_MINUTES)
+	utils.SetCookie(w, "refresh_token", refreshToken, config.Envs.REFRESH_TOKEN_EXPIRE_MINUTES)
+	utils.SetCookie(w, "oauthstate", "", -1) // Clear the oauthstate cookie
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "Successfully authenticated with Google"})
 }
 
-func (h *handler) handleLogout(w http.ResponseWriter, r *http.Request) {}
+func (h *handler) handleLogout(w http.ResponseWriter, r *http.Request) {
+	// Clear the access_token and refresh_token cookies
+	utils.SetCookie(w, "access_token", "", -1)
+	utils.SetCookie(w, "refresh_token", "", -1)
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "Successfully logged out"})
+}
+
+func (h *handler) handleRefresh(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement token refresh logic
+}
