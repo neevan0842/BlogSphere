@@ -8,16 +8,26 @@ import (
 )
 
 type Config struct {
+	// Database configuration
 	POSTGRES_USER     string
 	POSTGRES_PASSWORD string
 	POSTGRES_HOST     string
 	POSTGRES_PORT     string
 	POSTGRES_DB       string
 	DATABASE_URL      string
-	ADDR              string
+
+	// Server configuration
+	ADDR string
+
+	// Database connection pool configuration
 	DB_MAX_OPEN_CONNS int32
 	DB_MAX_IDLE_CONNS int32
 	DB_MAX_IDLE_TIME  string
+
+	// Google OAuth configuration
+	GOOGLE_CLIENT_ID     string
+	GOOGLE_CLIENT_SECRET string
+	GOOGLE_REDIRECT_URI  string
 }
 
 var Envs = initConfig()
@@ -26,16 +36,19 @@ func initConfig() Config {
 	godotenv.Load()
 
 	return Config{
-		POSTGRES_USER:     getEnv("POSTGRES_USER", "postgres"),
-		POSTGRES_PASSWORD: getEnv("POSTGRES_PASSWORD", "password"),
-		POSTGRES_HOST:     getEnv("POSTGRES_HOST", "localhost"),
-		POSTGRES_PORT:     getEnv("POSTGRES_PORT", "5433"),
-		POSTGRES_DB:       getEnv("POSTGRES_DB", "blogsphere"),
-		DATABASE_URL:      getEnv("DATABASE_URL", ""),
-		ADDR:              getEnv("ADDR", ":8080"),
-		DB_MAX_OPEN_CONNS: int32(getEnvAsInt("DB_MAX_OPEN_CONNS", 30)),
-		DB_MAX_IDLE_CONNS: int32(getEnvAsInt("DB_MAX_IDLE_CONNS", 30)),
-		DB_MAX_IDLE_TIME:  getEnv("DB_MAX_IDLE_TIME", "15m"),
+		POSTGRES_USER:        getEnv("POSTGRES_USER", "postgres"),
+		POSTGRES_PASSWORD:    getEnv("POSTGRES_PASSWORD", "password"),
+		POSTGRES_HOST:        getEnv("POSTGRES_HOST", "localhost"),
+		POSTGRES_PORT:        getEnv("POSTGRES_PORT", "5433"),
+		POSTGRES_DB:          getEnv("POSTGRES_DB", "blogsphere"),
+		DATABASE_URL:         getEnv("DATABASE_URL", ""),
+		ADDR:                 getEnv("ADDR", ":8080"),
+		DB_MAX_OPEN_CONNS:    int32(getEnvAsInt("DB_MAX_OPEN_CONNS", 30)),
+		DB_MAX_IDLE_CONNS:    int32(getEnvAsInt("DB_MAX_IDLE_CONNS", 30)),
+		DB_MAX_IDLE_TIME:     getEnv("DB_MAX_IDLE_TIME", "15m"),
+		GOOGLE_CLIENT_ID:     getEnv("GOOGLE_CLIENT_ID", ""),
+		GOOGLE_CLIENT_SECRET: getEnv("GOOGLE_CLIENT_SECRET", ""),
+		GOOGLE_REDIRECT_URI:  getEnv("GOOGLE_REDIRECT_URI", ""),
 	}
 }
 

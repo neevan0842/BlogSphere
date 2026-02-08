@@ -8,6 +8,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 	envs "github.com/neevan0842/BlogSphere/backend/config"
+	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
+	"github.com/neevan0842/BlogSphere/backend/internal/api/auth"
 	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 )
@@ -66,13 +68,14 @@ func (app *application) Mount() http.Handler {
 		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
-	// productService := products.NewService(repo.New(app.db))
-	// productHandler := products.NewHandler(productService)
-	// r.Get("/products", productHandler.ListProducts)
-
-	// orderService := orders.NewService(repo.New(app.db), app.db)
-	// ordersHandler := orders.NewHandler(orderService)
-	// r.Post("/orders", ordersHandler.PlaceOrder)
+	r.Route("/api/v1", func(r chi.Router) {
+		authService := auth.NewService(sqlc.New(app.db), app.db)
+		authHandler := auth.NewHandler(authService)
+		authHandler.RegisterRoutes(r)
+		// orderService := orders.NewService(repo.New(app.db), app.db)
+		// ordersHandler := orders.NewHandler(orderService)
+		// r.Post("/orders", ordersHandler.PlaceOrder)
+	})
 
 	return r
 }
