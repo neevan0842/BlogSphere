@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/neevan0842/BlogSphere/backend/config"
+	"github.com/neevan0842/BlogSphere/backend/database"
 	"github.com/neevan0842/BlogSphere/backend/internal"
 	"go.uber.org/zap"
 )
@@ -16,16 +16,21 @@ func main() {
 	logger := zap.Must(zap.NewProduction()).Sugar()
 	defer logger.Sync()
 
-	// Database
-	conn, err := pgx.Connect(ctx, config.Envs.DATABASE_URL)
+	// Database connection pool
+	pool, err := database.NewDBPool(ctx)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatal("Unable to create connection pool: ", err)
 	}
-	logger.Info("connected to database successfully")
-	defer conn.Close(ctx)
+	defer pool.Close()
+
+	// Ping the database to ensure connection is established
+	if err := pool.Ping(ctx); err != nil {
+		logger.Fatal("Unable to connect to database: ", err)
+	}
+	logger.Info("connected to database pool successfully")
 
 	// API Server
-	api := internal.NewAPIServer(config.Envs.ADDR, conn, logger)
+	api := internal.NewAPIServer(config.Envs.ADDR, pool, logger)
 
 	// Run the server
 	logger.Fatal(api.Run(api.Mount()))

@@ -6,15 +6,16 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	envs "github.com/neevan0842/BlogSphere/backend/config"
+	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 )
 
 type application struct {
 	config config
 	logger *zap.SugaredLogger
-	db     *pgx.Conn
+	db     *pgxpool.Pool
 }
 
 type config struct {
@@ -22,7 +23,7 @@ type config struct {
 	dsn  string
 }
 
-func NewAPIServer(addr string, db *pgx.Conn, logger *zap.SugaredLogger) *application {
+func NewAPIServer(addr string, db *pgxpool.Pool, logger *zap.SugaredLogger) *application {
 	return &application{
 		config: config{
 			addr: addr,
@@ -62,7 +63,7 @@ func (app *application) Mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("all good"))
+		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	// productService := products.NewService(repo.New(app.db))

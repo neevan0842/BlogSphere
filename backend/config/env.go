@@ -15,6 +15,9 @@ type Config struct {
 	POSTGRES_DB       string
 	DATABASE_URL      string
 	ADDR              string
+	DB_MAX_OPEN_CONNS int32
+	DB_MAX_IDLE_CONNS int32
+	DB_MAX_IDLE_TIME  string
 }
 
 var Envs = initConfig()
@@ -30,6 +33,9 @@ func initConfig() Config {
 		POSTGRES_DB:       getEnv("POSTGRES_DB", "blogsphere"),
 		DATABASE_URL:      getEnv("DATABASE_URL", ""),
 		ADDR:              getEnv("ADDR", ":8080"),
+		DB_MAX_OPEN_CONNS: int32(getEnvAsInt("DB_MAX_OPEN_CONNS", 30)),
+		DB_MAX_IDLE_CONNS: int32(getEnvAsInt("DB_MAX_IDLE_CONNS", 30)),
+		DB_MAX_IDLE_TIME:  getEnv("DB_MAX_IDLE_TIME", "15m"),
 	}
 }
 
