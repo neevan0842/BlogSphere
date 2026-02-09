@@ -27,8 +27,8 @@ sqlc-generate:
 	@sqlc generate
 
 # Run the application
-run: build
-	@./bin/api
+run: 
+	@air
 
 # Build the application
 build:
