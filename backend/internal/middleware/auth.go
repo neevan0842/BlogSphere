@@ -24,7 +24,8 @@ func NewMiddleware(repo *sqlc.Queries, logger *zap.SugaredLogger) *middleware {
 
 func (m *middleware) UserAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userIDUUID, err := utils.GetUserIDFromToken(w, r, "access_token")
+		token := utils.GetTokenFromRequest(r)
+		userIDUUID, err := utils.GetUserIDFromToken(w, token)
 		if err != nil {
 			m.logger.Errorf("invalid userID in token: %s", err.Error())
 			utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid token"))

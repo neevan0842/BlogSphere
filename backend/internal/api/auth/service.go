@@ -35,7 +35,6 @@ func (s *svc) generateStateOauthCookie(w http.ResponseWriter) string {
 	rand.Read(b)
 	state := base64.URLEncoding.EncodeToString(b)
 	utils.SetCookie(w, "oauthstate", state, expirationInMinutes)
-
 	return state
 }
 

@@ -42,8 +42,8 @@ func SetCookie(w http.ResponseWriter, name string, value string, expirationInMin
 		Value:    value,
 		Expires:  expirationTime,
 		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		Secure:   config.Envs.Secure,
+		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 	}
 
@@ -67,8 +67,7 @@ func PermissionDenied(w http.ResponseWriter) {
 	WriteError(w, http.StatusForbidden, fmt.Errorf("permission denied"))
 }
 
-func GetUserIDFromToken(w http.ResponseWriter, r *http.Request, name string) (pgtype.UUID, error) {
-	tokenString := getTokenFromRequest(r, name)
+func GetUserIDFromToken(w http.ResponseWriter, tokenString string) (pgtype.UUID, error) {
 	if tokenString == "" {
 		PermissionDenied(w)
 		return pgtype.UUID{}, fmt.Errorf("missing token")
@@ -103,12 +102,16 @@ func validateJWT(tokenString string) (*jwt.Token, error) {
 	})
 }
 
-func getTokenFromRequest(r *http.Request, name string) string {
-	cookie, err := r.Cookie(name)
-	if err != nil {
-		return ""
+func GetTokenFromRequest(r *http.Request) string {
+	// Check Authorization header first (for API clients like Postman)
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
+		// Expected format: "Bearer <token>"
+		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			return authHeader[7:]
+		}
 	}
-	return cookie.Value
+	return ""
 }
 
 func GetUserIDFromContext(ctx context.Context) (string, bool) {

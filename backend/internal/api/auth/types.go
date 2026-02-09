@@ -15,6 +15,10 @@ type Service interface {
 	GetUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error)
 }
 
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 type GoogleUserResponse struct {
 	ID            string `json:"id"`
 	Email         string `json:"email"`

@@ -44,7 +44,7 @@ func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 	oauthState, err := r.Cookie("oauthstate")
 
 	if err != nil {
-		h.logger.Error("could not read oauthstate cookie: %s", err.Error())
+		h.logger.Errorf("could not read oauthstate cookie: %s", err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
 		return
 	}
@@ -77,23 +77,37 @@ func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not generate tokens"))
 		return
 	}
-	// Set tokens in cookies
-	utils.SetCookie(w, "access_token", accessToken, config.Envs.ACCESS_TOKEN_EXPIRE_MINUTES)
-	utils.SetCookie(w, "refresh_token", refreshToken, config.Envs.REFRESH_TOKEN_EXPIRE_MINUTES)
-	utils.SetCookie(w, "oauthstate", "", -1) // Clear the oauthstate cookie
 
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "Successfully authenticated with Google"})
-}
+	// Clear the oauthstate cookie
+	utils.SetCookie(w, "oauthstate", "", -1)
 
-func (h *handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	// Clear the access_token and refresh_token cookies
-	utils.SetCookie(w, "access_token", "", -1)
-	utils.SetCookie(w, "refresh_token", "", -1)
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "Successfully logged out"})
+	utils.WriteJSON(w, http.StatusOK, map[string]string{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"token_type":    "Bearer",
+		"expires_in":    fmt.Sprintf("%d minutes", config.Envs.ACCESS_TOKEN_EXPIRE_MINUTES),
+	})
 }
 
 func (h *handler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
-	userIDUUID, err := utils.GetUserIDFromToken(w, r, "refresh_token")
+	var payload RefreshRequest
+
+	//parse JSON body
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		h.logger.Error(err.Error())
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request body"))
+		return
+	}
+
+	// validate refresh token
+	if err := utils.Validate.Struct(payload); err != nil {
+		h.logger.Error(err.Error())
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request body"))
+		return
+	}
+
+	// get userID from refresh token
+	userIDUUID, err := utils.GetUserIDFromToken(w, payload.RefreshToken)
 	if err != nil {
 		h.logger.Errorf("invalid userID in refresh token: %s", err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid token"))
@@ -114,6 +128,9 @@ func (h *handler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not generate access token"))
 		return
 	}
-	utils.SetCookie(w, "access_token", accessToken, config.Envs.ACCESS_TOKEN_EXPIRE_MINUTES)
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "Successfully refreshed access token"})
+	utils.WriteJSON(w, http.StatusOK, map[string]string{
+		"access_token": accessToken,
+		"token_type":   "Bearer",
+		"expires_in":   fmt.Sprintf("%d minutes", config.Envs.ACCESS_TOKEN_EXPIRE_MINUTES),
+	})
 }

@@ -33,6 +33,9 @@ type Config struct {
 	JWT_SECRET                   string
 	ACCESS_TOKEN_EXPIRE_MINUTES  int64
 	REFRESH_TOKEN_EXPIRE_MINUTES int64
+
+	// Cookie Configuration
+	Secure bool
 }
 
 var Envs = initConfig()
@@ -66,6 +69,9 @@ func initConfig() Config {
 		JWT_SECRET:                   getEnv("JWT_SECRET", ""),
 		ACCESS_TOKEN_EXPIRE_MINUTES:  getEnvAsInt("ACCESS_TOKEN_EXPIRE_MINUTES", 1440),
 		REFRESH_TOKEN_EXPIRE_MINUTES: getEnvAsInt("REFRESH_TOKEN_EXPIRE_MINUTES", 10080),
+
+		// Cookie Configuration
+		Secure: getEnvAsBool("Secure", true),
 	}
 }
 
@@ -85,4 +91,15 @@ func getEnvAsInt(key string, fallback int) int64 {
 		return int64(i)
 	}
 	return int64(fallback)
+}
+
+func getEnvAsBool(key string, fallback bool) bool {
+	if value, ok := os.LookupEnv(key); ok {
+		b, err := strconv.ParseBool(value)
+		if err != nil {
+			return fallback
+		}
+		return b
+	}
+	return fallback
 }
