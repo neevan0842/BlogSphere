@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -55,7 +54,7 @@ func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Convert to createOrUpdateUserParams
+	// Convert to createUserParams
 	userData, err := h.service.getUserDataFromGoogle(r.FormValue("code"))
 	if err != nil {
 		h.logger.Error(err.Error())
@@ -63,7 +62,7 @@ func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user, err := h.service.createOrUpdateUser(context.Background(), userData)
+	user, err := h.service.createUserIfNotExists(r.Context(), userData)
 	if err != nil {
 		h.logger.Error(err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))

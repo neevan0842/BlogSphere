@@ -11,44 +11,30 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createOrUpdateUser = `-- name: CreateOrUpdateUser :one
+const createUser = `-- name: CreateUser :one
 INSERT INTO users (google_id, username, email, avatar_url)
 VALUES ($1, $2, $3, $4)
-ON CONFLICT (google_id) 
-DO UPDATE SET 
-    username = EXCLUDED.username,
-    email = EXCLUDED.email,
-    avatar_url = EXCLUDED.avatar_url,
-    updated_at = now()
-RETURNING id, username, email, avatar_url, created_at, updated_at
+RETURNING id, google_id, username, email, avatar_url, created_at, updated_at
 `
 
-type CreateOrUpdateUserParams struct {
+type CreateUserParams struct {
 	GoogleID  string      `json:"google_id"`
 	Username  pgtype.Text `json:"username"`
 	Email     string      `json:"email"`
 	AvatarUrl pgtype.Text `json:"avatar_url"`
 }
 
-type CreateOrUpdateUserRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Username  pgtype.Text        `json:"username"`
-	Email     string             `json:"email"`
-	AvatarUrl pgtype.Text        `json:"avatar_url"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-}
-
-func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUserParams) (CreateOrUpdateUserRow, error) {
-	row := q.db.QueryRow(ctx, createOrUpdateUser,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
 		arg.GoogleID,
 		arg.Username,
 		arg.Email,
 		arg.AvatarUrl,
 	)
-	var i CreateOrUpdateUserRow
+	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.GoogleID,
 		&i.Username,
 		&i.Email,
 		&i.AvatarUrl,
@@ -58,13 +44,13 @@ func (q *Queries) CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUser
 	return i, err
 }
 
-const getUserByEmail = `-- name: GetUserByEmail :one
+const getUserByGoogleID = `-- name: GetUserByGoogleID :one
 SELECT id, google_id, username, email, avatar_url, created_at, updated_at FROM users 
-WHERE email = $1
+WHERE google_id = $1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByEmail, email)
+func (q *Queries) GetUserByGoogleID(ctx context.Context, googleID string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByGoogleID, googleID)
 	var i User
 	err := row.Scan(
 		&i.ID,

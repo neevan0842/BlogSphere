@@ -10,8 +10,8 @@ import (
 
 type Service interface {
 	generateStateOauthCookie(w http.ResponseWriter) string
-	getUserDataFromGoogle(code string) (sqlc.CreateOrUpdateUserParams, error)
-	createOrUpdateUser(ctx context.Context, arg sqlc.CreateOrUpdateUserParams) (sqlc.CreateOrUpdateUserRow, error)
+	getUserDataFromGoogle(code string) (sqlc.CreateUserParams, error)
+	createUserIfNotExists(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error)
 	GetUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error)
 }
 

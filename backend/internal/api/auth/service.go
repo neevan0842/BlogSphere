@@ -38,39 +38,46 @@ func (s *svc) generateStateOauthCookie(w http.ResponseWriter) string {
 	return state
 }
 
-func (s *svc) getUserDataFromGoogle(code string) (sqlc.CreateOrUpdateUserParams, error) {
+func (s *svc) getUserDataFromGoogle(code string) (sqlc.CreateUserParams, error) {
 	// Use code to get token and get user info from Google.
 
 	token, err := googleOauthConfig.Exchange(context.Background(), code)
 	if err != nil {
-		return sqlc.CreateOrUpdateUserParams{}, fmt.Errorf("code exchange wrong: %s", err.Error())
+		return sqlc.CreateUserParams{}, fmt.Errorf("code exchange wrong: %s", err.Error())
 	}
 	response, err := http.Get(oauthGoogleUrlAPI + token.AccessToken)
 	if err != nil {
-		return sqlc.CreateOrUpdateUserParams{}, fmt.Errorf("failed getting user info: %s", err.Error())
+		return sqlc.CreateUserParams{}, fmt.Errorf("failed getting user info: %s", err.Error())
 	}
 	defer response.Body.Close()
 	contents, err := io.ReadAll(response.Body)
 	if err != nil {
-		return sqlc.CreateOrUpdateUserParams{}, fmt.Errorf("failed read response: %s", err.Error())
+		return sqlc.CreateUserParams{}, fmt.Errorf("failed read response: %s", err.Error())
 	}
 
 	// parse google user data
 	data, err := parseGoogleUserData(contents)
 	if err != nil {
-		return sqlc.CreateOrUpdateUserParams{}, fmt.Errorf("failed to parse user data: %s", err.Error())
+		return sqlc.CreateUserParams{}, fmt.Errorf("failed to parse user data: %s", err.Error())
 	}
 
-	// convert to CreateOrUpdateUserParams
-	CreateOrUpdateUserParams := convertToCreateOrUpdateUserParams(data)
+	// convert to CreateUserParams
+	CreateUserParams := convertToCreateUserParams(data)
 
-	return CreateOrUpdateUserParams, nil
+	return CreateUserParams, nil
 }
 
-func (s *svc) createOrUpdateUser(ctx context.Context, arg sqlc.CreateOrUpdateUserParams) (sqlc.CreateOrUpdateUserRow, error) {
-	user, err := s.repo.CreateOrUpdateUser(ctx, arg)
+func (s *svc) createUserIfNotExists(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error) {
+	// Check if user already exists
+	existingUser, err := s.repo.GetUserByGoogleID(ctx, arg.GoogleID)
+	if err == nil {
+		return existingUser, nil
+	}
+
+	// Create new user
+	user, err := s.repo.CreateUser(ctx, arg)
 	if err != nil {
-		return sqlc.CreateOrUpdateUserRow{}, fmt.Errorf("failed to create or update user: %s", err.Error())
+		return sqlc.User{}, fmt.Errorf("failed to create user: %s", err.Error())
 	}
 	return user, nil
 }
@@ -92,8 +99,8 @@ func parseGoogleUserData(data []byte) (*GoogleUserResponse, error) {
 	return &googleUser, nil
 }
 
-func convertToCreateOrUpdateUserParams(googleUser *GoogleUserResponse) sqlc.CreateOrUpdateUserParams {
-	return sqlc.CreateOrUpdateUserParams{
+func convertToCreateUserParams(googleUser *GoogleUserResponse) sqlc.CreateUserParams {
+	return sqlc.CreateUserParams{
 		GoogleID: googleUser.ID,
 		Username: pgtype.Text{
 			String: googleUser.Name,

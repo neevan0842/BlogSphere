@@ -11,8 +11,8 @@ import (
 )
 
 type Querier interface {
-	CreateOrUpdateUser(ctx context.Context, arg CreateOrUpdateUserParams) (CreateOrUpdateUserRow, error)
-	GetUserByEmail(ctx context.Context, email string) (User, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	GetUserByGoogleID(ctx context.Context, googleID string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 }
 
