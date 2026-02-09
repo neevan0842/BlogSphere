@@ -7,10 +7,12 @@ import GoogleCallback from "./components/GoogleCallback";
 import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
 import Post from "./pages/Post";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   return (
     <div>
+      <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route index element={<Home />} />
         <Route path="/signin" element={<Signin />} />
