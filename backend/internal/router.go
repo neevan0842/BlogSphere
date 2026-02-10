@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	envs "github.com/neevan0842/BlogSphere/backend/config"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
@@ -60,6 +61,14 @@ func (app *application) Mount() http.Handler {
 	r.Use(middleware.RealIP)    // import for rate limiting and analytics and tracing
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer) // recover from crashes
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{envs.Envs.CORS_ALLOWED_ORIGIN},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further

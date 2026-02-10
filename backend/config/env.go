@@ -36,6 +36,9 @@ type Config struct {
 
 	// Cookie Configuration
 	Secure bool
+
+	// CORS Configuration
+	CORS_ALLOWED_ORIGIN string
 }
 
 var Envs = initConfig()
@@ -72,6 +75,9 @@ func initConfig() Config {
 
 		// Cookie Configuration
 		Secure: getEnvAsBool("Secure", true),
+
+		// CORS Configuration
+		CORS_ALLOWED_ORIGIN: getEnv("CORS_ALLOWED_ORIGIN", "http://localhost:5173"),
 	}
 }
 

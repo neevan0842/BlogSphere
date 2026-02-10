@@ -35,7 +35,9 @@ func (h *handler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	// Create oauthState cookie
 	oauthState := h.service.generateStateOauthCookie(w)
 	url := googleOauthConfig.AuthCodeURL(oauthState)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	utils.WriteJSON(w, http.StatusOK, map[string]string{
+		"url": url,
+	})
 }
 
 func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
