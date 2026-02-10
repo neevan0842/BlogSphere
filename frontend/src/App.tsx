@@ -10,6 +10,7 @@ import Post from "./pages/Post";
 import { Toaster } from "react-hot-toast";
 import useThemeStore from "./store/themeStore";
 import { useEffect } from "react";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   const { theme } = useThemeStore.getState();
@@ -25,10 +26,14 @@ const App = () => {
       <Routes>
         <Route index element={<Home />} />
         <Route path="/signin" element={<Signin />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/create" element={<Create />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/post/:slug" element={<Post />} />
+
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/create" element={<Create />} />
+        </Route>
 
         {/* Google OAuth callback route */}
         <Route path="/auth/google/callback" element={<GoogleCallback />} />

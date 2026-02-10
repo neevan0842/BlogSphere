@@ -89,7 +89,7 @@ func (app *application) Mount() http.Handler {
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/google", authHandler.HandleGoogleLogin)
 			r.Get("/google/callback", authHandler.HandleGoogleAuthCallback)
-			r.Get("/refresh", authHandler.HandleRefresh)
+			r.Post("/refresh", authHandler.HandleRefresh)
 		})
 	})
 

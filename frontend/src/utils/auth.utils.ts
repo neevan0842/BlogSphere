@@ -15,4 +15,17 @@ const getUserIDFromToken = (token: string): string | null => {
   }
 };
 
-export { getUserIDFromToken };
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const decoded = jwtDecode<CustomJwtPayload>(token);
+    const tokenExpiration = decoded.exp;
+    const now = Date.now() / 1000;
+    return tokenExpiration! < now;
+  } catch (error) {
+    console.error("Token decoding error:", error);
+    return true; // Treat decoding errors as if the token is near expiration
+  }
+};
+
+export { getUserIDFromToken, isTokenExpired };
+export type { CustomJwtPayload };
