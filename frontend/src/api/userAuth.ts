@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import { apiUnauthenticated } from "./api";
 import { getUserIDFromToken } from "../utils/auth.utils";
 import useUserStore from "../store/userStore";
+import type { User } from "../types/types";
 
 const getGoogleAuthURL = async (): Promise<string> => {
   try {
@@ -35,9 +36,16 @@ const exchangeGoogleCodeForToken = async (
       return false;
     }
 
+    //getch user details
+    const user = await getUserDetailsFromUserID(userID);
+    if (!user) {
+      toast.error("Failed to fetch user details. Please try again.");
+      return false;
+    }
+
     // Update user store with authenticated user ID
-    const { setUserID } = useUserStore();
-    setUserID(userID);
+    const { setUser } = useUserStore();
+    setUser(user);
     toast.success("Successfully signed in with Google!");
     return true;
   } catch (error) {
@@ -51,10 +59,6 @@ const refreshAccessToken = async (): Promise<boolean> => {
     const response = await apiUnauthenticated.post("/auth/refresh", {
       refresh_token: localStorage.getItem("refresh-token"),
     });
-    if (!response.data.access_token) {
-      toast.error("Failed to refresh access token. Please sign in again.");
-      return false;
-    }
 
     // Decode user ID from new access token
     const userID = getUserIDFromToken(response.data.access_token);
@@ -65,14 +69,33 @@ const refreshAccessToken = async (): Promise<boolean> => {
       return false;
     }
 
+    //fetch user details
+    const user = await getUserDetailsFromUserID(userID);
+    if (!user) {
+      toast.error("Failed to fetch user details. Please sign in again.");
+      return false;
+    }
+
     // Update user store with authenticated user ID and new access token
-    const { setUserID } = useUserStore();
-    setUserID(userID);
+    const { setUser } = useUserStore();
+    setUser(user);
     localStorage.setItem("access-token", response.data.access_token);
     return true;
   } catch (error) {
     toast.error("Failed to refresh access token. Please sign in again.");
     return false;
+  }
+};
+
+const getUserDetailsFromUserID = async (
+  userID: string,
+): Promise<User | null> => {
+  try {
+    const response = await apiUnauthenticated.get(`/users/${userID}`);
+    return response.data as User;
+  } catch (error) {
+    toast.error("Failed to fetch user details. Please try again.");
+    return null;
   }
 };
 

@@ -5,7 +5,7 @@ import useUserStore from "../store/userStore";
 import { refreshAccessToken } from "../api/userAuth";
 
 function ProtectedRoute() {
-  const { clearUser, setUserID } = useUserStore();
+  const { clearUser } = useUserStore();
   const accessToken = localStorage.getItem("access-token");
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
@@ -34,7 +34,7 @@ function ProtectedRoute() {
     };
 
     auth();
-  }, [accessToken, clearUser, setUserID]);
+  }, [accessToken, clearUser]);
 
   if (isAuthorized === null) {
     return (
