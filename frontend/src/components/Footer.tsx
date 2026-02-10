@@ -15,7 +15,11 @@ const Footer = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-6 text-sm text-muted-foreground">
-            <Link to="#" className="hover:text-primary transition-colors">
+            <Link
+              to="https://github.com/neevan0842"
+              target="_blank"
+              className="hover:text-primary transition-colors"
+            >
               About
             </Link>
             <Link to="#" className="hover:text-primary transition-colors">
@@ -24,7 +28,11 @@ const Footer = () => {
             <Link to="#" className="hover:text-primary transition-colors">
               Terms
             </Link>
-            <Link to="#" className="hover:text-primary transition-colors">
+            <Link
+              to="https://github.com/neevan0842"
+              target="_blank"
+              className="hover:text-primary transition-colors"
+            >
               Contact
             </Link>
           </div>
