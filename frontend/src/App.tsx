@@ -8,8 +8,17 @@ import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
 import Post from "./pages/Post";
 import { Toaster } from "react-hot-toast";
+import useThemeStore from "./store/themeStore";
+import { useEffect } from "react";
 
 const App = () => {
+  const { theme } = useThemeStore.getState();
+
+  useEffect(() => {
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
+
   return (
     <div>
       <Toaster position="top-center" reverseOrder={false} />
