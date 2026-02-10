@@ -5,8 +5,8 @@ import useThemeStore from "../store/themeStore";
 import { Menu, Moon, Sun, X } from "lucide-react";
 
 const Header = () => {
-  const { isAuthenticated } = useUserStore.getState();
-  const { theme, toggleTheme } = useThemeStore.getState();
+  const { isAuthenticated } = useUserStore();
+  const { theme, toggleTheme } = useThemeStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (

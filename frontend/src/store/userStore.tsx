@@ -1,4 +1,4 @@
-import { createStore } from "zustand/vanilla";
+import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
@@ -9,7 +9,7 @@ type UserStoreState = {
   clearUser: () => void;
 };
 
-const useUserStore = createStore<UserStoreState>()(
+const useUserStore = create<UserStoreState>()(
   persist(
     immer((set) => ({
       userID: null,

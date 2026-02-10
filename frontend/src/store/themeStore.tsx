@@ -1,4 +1,4 @@
-import { createStore } from "zustand/vanilla";
+import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
@@ -7,7 +7,7 @@ type ThemeStoreState = {
   toggleTheme: () => void;
 };
 
-const useThemeStore = createStore<ThemeStoreState>()(
+const useThemeStore = create<ThemeStoreState>()(
   persist(
     immer((set) => ({
       theme: window.matchMedia("(prefers-color-scheme: dark)").matches

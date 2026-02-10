@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import useUserStore from "../store/userStore";
 
 const Login = () => {
-  const { isAuthenticated } = useUserStore.getState();
+  const { isAuthenticated } = useUserStore();
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async (e: React.MouseEvent<HTMLButtonElement>) => {

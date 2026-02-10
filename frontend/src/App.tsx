@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router";
+import { useEffect } from "react";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Signin from "./pages/Signin";
@@ -9,11 +10,10 @@ import Categories from "./pages/Categories";
 import Post from "./pages/Post";
 import { Toaster } from "react-hot-toast";
 import useThemeStore from "./store/themeStore";
-import { useEffect } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
-  const { theme } = useThemeStore.getState();
+  const { theme } = useThemeStore();
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");

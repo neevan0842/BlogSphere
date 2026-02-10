@@ -4,7 +4,7 @@ import PageLayout from "../components/PageLayout";
 import useUserStore from "../store/userStore";
 
 const NotFound = () => {
-  const { isAuthenticated } = useUserStore.getState();
+  const { isAuthenticated } = useUserStore();
 
   return (
     <PageLayout>
