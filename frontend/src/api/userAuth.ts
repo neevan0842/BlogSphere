@@ -44,7 +44,7 @@ const exchangeGoogleCodeForToken = async (
     }
 
     // Update user store with authenticated user ID
-    const { setUser } = useUserStore();
+    const { setUser } = useUserStore.getState();
     setUser(user);
     toast.success("Successfully signed in with Google!");
     return true;
@@ -77,7 +77,7 @@ const refreshAccessToken = async (): Promise<boolean> => {
     }
 
     // Update user store with authenticated user ID and new access token
-    const { setUser } = useUserStore();
+    const { setUser } = useUserStore.getState();
     setUser(user);
     localStorage.setItem("access-token", response.data.access_token);
     return true;
