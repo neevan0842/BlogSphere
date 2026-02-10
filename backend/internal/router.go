@@ -11,8 +11,9 @@ import (
 	envs "github.com/neevan0842/BlogSphere/backend/config"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/auth"
+	"github.com/neevan0842/BlogSphere/backend/internal/api/users"
 
-	// mw "github.com/neevan0842/BlogSphere/backend/internal/middleware"
+	mw "github.com/neevan0842/BlogSphere/backend/internal/middleware"
 	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 )
@@ -75,21 +76,33 @@ func (app *application) Mount() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	//
+	// Initialize services and handlers
 	authService := auth.NewService(sqlc.New(app.db), app.db)
 	authHandler := auth.NewHandler(authService, app.logger)
 
-	// authMiddleware := mw.NewMiddleware(sqlc.New(app.db), app.logger)
+	userService := users.NewService(sqlc.New(app.db), app.db)
+	userHandler := users.NewHandler(userService, app.logger)
+
+	// Initialize middleware
+	authMiddleware := mw.NewMiddleware(sqlc.New(app.db), app.logger)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
+
+		// auth routes
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/google", authHandler.HandleGoogleLogin)
 			r.Get("/google/callback", authHandler.HandleGoogleAuthCallback)
 			r.Post("/refresh", authHandler.HandleRefresh)
+		})
+
+		// user routes
+		r.Route("/users", func(r chi.Router) {
+			r.Use(authMiddleware.UserAuthentication) // Apply authentication middleware to all /users routes
+			r.Get("/me", userHandler.HandleGetUsers)
 		})
 	})
 
