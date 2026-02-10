@@ -10,3 +10,7 @@ WHERE google_id = $1;
 INSERT INTO users (google_id, username, email, avatar_url)
 VALUES ($1, $2, $3, $4)
 RETURNING id, google_id, username, email, avatar_url, created_at, updated_at;
+
+-- name: GetUserByUsername :one
+SELECT id, google_id, username, email, avatar_url, created_at, updated_at FROM users 
+WHERE username = $1;

@@ -28,3 +28,11 @@ func (s *svc) getUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, e
 	}
 	return user, nil
 }
+
+func (s *svc) getUserByUsername(ctx context.Context, username pgtype.Text) (sqlc.User, error) {
+	user, err := s.repo.GetUserByUsername(ctx, username)
+	if err != nil {
+		return sqlc.User{}, fmt.Errorf("failed to get user by username: %s", err.Error())
+	}
+	return user, nil
+}
