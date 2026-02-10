@@ -69,7 +69,7 @@ func (h *handler) HandleGetUserByUsername(w http.ResponseWriter, r *http.Request
 	username := chi.URLParam(r, "username")
 
 	// Fetch user details from the database
-	user, err := h.service.getUserByUsername(r.Context(), pgtype.Text{String: username, Valid: true})
+	user, err := h.service.getUserByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""})
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("user not found"))
 		return

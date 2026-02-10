@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -100,11 +101,17 @@ func parseGoogleUserData(data []byte) (*GoogleUserResponse, error) {
 }
 
 func convertToCreateUserParams(googleUser *GoogleUserResponse) sqlc.CreateUserParams {
+	// Extract username from email (part before @)
+	username := googleUser.Email
+	if atIndex := strings.Index(googleUser.Email, "@"); atIndex != -1 {
+		username = googleUser.Email[:atIndex]
+	}
+
 	return sqlc.CreateUserParams{
 		GoogleID: googleUser.ID,
 		Username: pgtype.Text{
-			String: googleUser.Name,
-			Valid:  googleUser.Name != "",
+			String: username,
+			Valid:  username != "",
 		},
 		Email: googleUser.Email,
 		AvatarUrl: pgtype.Text{
