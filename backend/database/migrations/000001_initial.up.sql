@@ -2,7 +2,7 @@
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     google_id TEXT NOT NULL UNIQUE,
-    username TEXT,
+    username TEXT UNIQUE,
     email TEXT NOT NULL UNIQUE,
     description TEXT,
     avatar_url TEXT,
