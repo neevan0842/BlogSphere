@@ -64,7 +64,7 @@ func (app *application) Mount() http.Handler {
 	r.Use(middleware.Recoverer) // recover from crashes
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{envs.Envs.CORS_ALLOWED_ORIGIN},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -108,7 +108,7 @@ func (app *application) Mount() http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Use(authMiddleware.UserAuthentication) // Apply authentication middleware to all /users routes
 				r.Get("/me", userHandler.HandleGetCurrentUser)
-				r.Patch("/", userHandler.HandleUpdateUser)
+				r.Patch("/{id}", userHandler.HandleUpdateUser)
 			})
 		})
 	})

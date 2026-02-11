@@ -97,6 +97,13 @@ func (h *handler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// verify user is updating their own profile
+	requestedUserID := chi.URLParam(r, "id")
+	if userID != requestedUserID {
+		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you can only update your own profile"))
+		return
+	}
+
 	userIDUUID, err := utils.StrToUUID(userID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid user ID in token: %s", err.Error()))
