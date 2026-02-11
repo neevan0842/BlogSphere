@@ -1,5 +1,315 @@
+import { Link, useNavigate, useParams } from "react-router";
+import PageLayout from "../components/PageLayout";
+import { useEffect, useState } from "react";
+import type { LikedPost, User, UserPost } from "../types/types";
+import { Edit2, LogOut, Trash2 } from "lucide-react";
+import {
+  getUserDetailsFromUsername,
+  getUserLikedPosts,
+  getUserPosts,
+  logout,
+  updateUserDescription,
+} from "../api/userAuth";
+import BlogPostCard from "../components/BlogPostCard";
+import useUserStore from "../store/userStore";
+
 const Profile = () => {
-  return <div>Profile</div>;
+  const navigate = useNavigate();
+  const { username } = useParams();
+  const { user: authenticatedUser, isAuthenticated } = useUserStore();
+  const [user, setUser] = useState<User | null>(null);
+  const [isOwner, setIsOwner] = useState<boolean>(false);
+  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
+  const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
+  const [activeTab, setActiveTab] = useState<"posts" | "liked">("posts");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDescription, setEditDescription] = useState("");
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const handleDeleteAccount = () => {
+    //TODO: Implement account deletion API call and logic
+    if (
+      confirm(
+        "Are you sure you want to delete your account? This action cannot be undone.",
+      )
+    ) {
+      logout();
+      navigate("/");
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updatedUser = await updateUserDescription(
+      user?.id || "",
+      editDescription,
+    );
+    if (!updatedUser) {
+      return;
+    }
+    setUser(updatedUser);
+    setIsEditing(false);
+  };
+
+  useEffect(() => {
+    const fetchUserProfileDetails = async () => {
+      const [userData, userPostsData, likedPostsData] = await Promise.all([
+        getUserDetailsFromUsername(username || ""),
+        getUserPosts(username || ""),
+        getUserLikedPosts(username || ""),
+      ]);
+      if (userData) {
+        setUser(userData);
+        setUserPosts(userPostsData || []);
+        setLikedPosts(likedPostsData || []);
+        setIsOwner(isAuthenticated && authenticatedUser?.id === userData.id);
+      } else {
+        navigate("/not-found");
+      }
+    };
+    fetchUserProfileDetails();
+  }, [username, navigate, isAuthenticated, authenticatedUser]);
+
+  // Fetch user details on component mount
+  if (!user) {
+    return (
+      <>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading profile...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <PageLayout>
+      {/* Profile Header */}
+      <section className="border-b border-border bg-secondary/30 py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
+              {/* Avatar */}
+              <img
+                src={user.avatar_url || "/placeholder.svg"}
+                alt={user.username || "User"}
+                className="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover border-4 border-primary/20"
+              />
+
+              {/* Profile Info */}
+              <div className="flex-1">
+                {!isEditing ? (
+                  <>
+                    <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+                      {user.username || "Anonymous"}
+                    </h1>
+                    <p className="text-muted-foreground mb-4">{user.email}</p>
+                    <p className="text-foreground mb-6 max-w-xl">
+                      {user.description || "No description available."}
+                    </p>
+
+                    <div className="space-y-4">
+                      {/* Action Buttons */}
+                      {isOwner && (
+                        <div>
+                          <button
+                            onClick={() => setIsEditing(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 mr-2 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors font-medium"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                            Edit Profile
+                          </button>
+                          <button
+                            onClick={handleLogout}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors font-medium"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            Logout
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-1">
+                        Description
+                      </label>
+                      <input
+                        type="text"
+                        value={editDescription}
+                        autoFocus
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-4">
+                      <button
+                        onClick={handleSaveProfile}
+                        className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={() => setIsEditing(false)}
+                        className="px-4 py-2 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <section className="border-b border-border sticky top-16 z-20 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
+        <div className="container mx-auto px-4">
+          <div className="flex gap-8 max-w-3xl mx-auto">
+            <button
+              onClick={() => setActiveTab("posts")}
+              className={`px-4 py-4 font-medium border-b-2 transition-colors ${
+                activeTab === "posts"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Your Posts ({userPosts.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("liked")}
+              className={`px-4 py-4 font-medium border-b-2 transition-colors ${
+                activeTab === "liked"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Liked Posts ({likedPosts.length})
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Content */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto">
+          {activeTab === "posts" && (
+            <div>
+              {userPosts.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {userPosts.map((post) => (
+                    <div key={post.id} className="relative">
+                      <BlogPostCard
+                        key={post.slug}
+                        title={post.title}
+                        body={post.body}
+                        author={post.author}
+                        created_at={post.created_at}
+                        categories={post.categories}
+                        slug={post.slug}
+                        like_count={post.like_count}
+                        comment_count={post.comment_count}
+                        user_has_liked={false} //TODO: Add liked status to UserPost type and fetch it from API
+                      />
+                      {isOwner && (
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          <Link
+                            to={`/post/${post.id}/edit`}
+                            className="p-2 rounded-lg bg-background/80 text-foreground hover:bg-background transition-colors"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Link>
+                          <button className="p-2 rounded-lg bg-background/80 text-destructive hover:bg-background transition-colors">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground mb-4">
+                    You haven't published any posts yet.
+                  </p>
+                  <Link
+                    to="/create"
+                    className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                  >
+                    Write Your First Post
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "liked" && (
+            <div>
+              {likedPosts.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {likedPosts.map((post) => (
+                    <BlogPostCard
+                      key={post.slug}
+                      title={post.title}
+                      body={post.body}
+                      author={post.author}
+                      created_at={post.created_at}
+                      categories={post.categories}
+                      slug={post.slug}
+                      like_count={post.like_count}
+                      comment_count={post.comment_count}
+                      user_has_liked={post.user_has_liked}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">
+                    You haven't liked any posts yet. Explore articles and show
+                    some love!
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Danger Zone */}
+      {!isEditing && (
+        <section className="container mx-auto px-4 py-12">
+          <div className="max-w-3xl mx-auto">
+            <div className="border-2 border-destructive rounded-lg p-6 bg-destructive/15">
+              <h3 className="text-lg font-bold text-destructive mb-2">
+                Danger Zone
+              </h3>
+              <p className="text-destructive/80 mb-4">
+                Once you delete your account, there is no going back. Please be
+                certain.
+              </p>
+              <button
+                onClick={handleDeleteAccount}
+                className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors font-medium"
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+    </PageLayout>
+  );
 };
 
 export default Profile;

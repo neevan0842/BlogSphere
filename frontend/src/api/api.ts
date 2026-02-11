@@ -2,13 +2,13 @@ import axios, { type AxiosInstance, type AxiosRequestHeaders } from "axios";
 
 const API_URL: string = import.meta.env.VITE_API_URL;
 
-const apiAuthenticated: AxiosInstance = axios.create({
+const api: AxiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
 });
 
 // Interceptor: sets the Authorization header before each request.
-apiAuthenticated.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem("access-token");
     if (accessToken) {
@@ -24,9 +24,4 @@ apiAuthenticated.interceptors.request.use(
   },
 );
 
-const apiUnauthenticated: AxiosInstance = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
-
-export { apiAuthenticated, apiUnauthenticated };
+export { api };

@@ -8,6 +8,7 @@ export interface User {
   google_id: string;
   username: string | null;
   email: string;
+  description: string | null;
   avatar_url: string | null;
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
@@ -29,7 +30,6 @@ export interface Post {
   slug: string;
   body: string;
   is_published: boolean;
-  published_at: string | null; // TIMESTAMPTZ
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
 }
@@ -100,4 +100,60 @@ export interface CategoryDisplay extends Category {
   description: string;
   color: string;
   icon: string;
+}
+
+// ============================================================================
+// User Posts API Response Types
+// ============================================================================
+
+// Author info returned in post responses (simplified User)
+export interface PostAuthor {
+  id: string;
+  google_id: string;
+  username: string;
+  email: string;
+  avatar_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Category info in post responses
+export interface PostCategory {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+// User's own posts response (GET /users/u/{username}/posts)
+export interface UserPost {
+  id: string;
+  author_id: string;
+  title: string;
+  slug: string;
+  body: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  author: PostAuthor;
+  categories: PostCategory[];
+  like_count: number;
+  comment_count: number;
+}
+
+// Posts liked by user response (GET /users/u/{username}/liked-posts)
+export interface LikedPost {
+  id: string;
+  author_id: string;
+  title: string;
+  slug: string;
+  body: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  author: PostAuthor;
+  categories: PostCategory[];
+  like_count: number;
+  comment_count: number;
+  user_has_liked: boolean;
 }
