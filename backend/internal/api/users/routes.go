@@ -76,3 +76,39 @@ func (h *handler) HandleGetUserByUsername(w http.ResponseWriter, r *http.Request
 	}
 	utils.WriteJSON(w, http.StatusOK, user)
 }
+
+func (h *handler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	var payload UpdateUserRequest
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request payload: %s", err.Error()))
+		return
+	}
+
+	// validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request payload: %s", err.Error()))
+		return
+	}
+
+	// Get user ID from context (set by authentication middleware)
+	userID, ok := utils.GetUserIDFromContext(r.Context())
+	if !ok {
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("access token in header invalid"))
+		return
+	}
+
+	userIDUUID, err := utils.StrToUUID(userID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid user ID in token: %s", err.Error()))
+		return
+	}
+
+	// Update user description in the database
+	updatedUser, err := h.service.updateUserDescription(r.Context(), userIDUUID, pgtype.Text{String: payload.Description, Valid: payload.Description != ""})
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to update user description: %s", err.Error()))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, updatedUser)
+}

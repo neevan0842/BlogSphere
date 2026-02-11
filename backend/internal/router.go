@@ -106,6 +106,7 @@ func (app *application) Mount() http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Use(authMiddleware.UserAuthentication) // Apply authentication middleware to all /users routes
 				r.Get("/me", userHandler.HandleGetCurrentUser)
+				r.Patch("/", userHandler.HandleUpdateUser)
 			})
 		})
 	})

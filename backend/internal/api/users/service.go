@@ -36,3 +36,14 @@ func (s *svc) getUserByUsername(ctx context.Context, username pgtype.Text) (sqlc
 	}
 	return user, nil
 }
+
+func (s *svc) updateUserDescription(ctx context.Context, userID pgtype.UUID, description pgtype.Text) (sqlc.User, error) {
+	user, err := s.repo.UpdateUser(ctx, sqlc.UpdateUserParams{
+		ID:          userID,
+		Description: description,
+	})
+	if err != nil {
+		return sqlc.User{}, fmt.Errorf("failed to update user description: %s", err.Error())
+	}
+	return user, nil
+}
