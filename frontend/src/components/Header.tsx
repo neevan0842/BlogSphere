@@ -5,7 +5,7 @@ import useThemeStore from "../store/themeStore";
 import { Menu, Moon, Sun, X } from "lucide-react";
 
 const Header = () => {
-  const { isAuthenticated } = useUserStore();
+  const { isAuthenticated, user } = useUserStore();
   const { theme, toggleTheme } = useThemeStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -38,7 +38,7 @@ const Header = () => {
           </Link>
           {isAuthenticated && (
             <Link
-              to="/profile"
+              to={`/u/${user?.username || ""}`}
               className="text-foreground hover:text-primary transition-colors font-medium"
             >
               Profile
@@ -71,10 +71,15 @@ const Header = () => {
             </Link>
           ) : (
             <Link
-              to="/profile"
+              to={`/u/${user?.username || ""}`}
               className="sm:block w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold"
             >
-              U
+              <img
+                src={user?.avatar_url || "/placeholder.svg"}
+                alt={user?.username || "User"}
+                className="w-8 h-8 rounded-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </Link>
           )}
 
@@ -111,7 +116,7 @@ const Header = () => {
             </Link>
             {isAuthenticated && (
               <Link
-                to="/profile"
+                to={`/u/${user?.username || ""}`}
                 className="px-4 py-2 rounded-lg hover:bg-secondary transition-colors text-foreground font-medium"
               >
                 Profile

@@ -28,10 +28,10 @@ const App = () => {
         <Route path="/signin" element={<Signin />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/post/:slug" element={<Post />} />
+        <Route path="/u/:username" element={<Profile />} />
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/profile" element={<Profile />} />
           <Route path="/create" element={<Create />} />
         </Route>
 
