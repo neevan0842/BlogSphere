@@ -5,7 +5,7 @@ Populates the PostgreSQL database with demo data.
 ## Usage
 
 ```bash
-uv run --with psycopg2-binary --with python-dotenv seed.py
+uv run --with psycopg2-binary --with python-dotenv .\scripts\seed.py
 ```
 
 ## What Gets Seeded
