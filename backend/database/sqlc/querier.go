@@ -12,9 +12,16 @@ import (
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	GetCategoriesByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCategoriesByPostIDsRow, error)
+	GetCommentCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCommentCountsByPostIDsRow, error)
+	GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetLikeCountsByPostIDsRow, error)
+	GetPostsByUsername(ctx context.Context, username pgtype.Text) ([]Post, error)
+	GetPostsLikedByUsername(ctx context.Context, username pgtype.Text) ([]Post, error)
 	GetUserByGoogleID(ctx context.Context, googleID string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username pgtype.Text) (User, error)
+	GetUserLikedPostIDs(ctx context.Context, arg GetUserLikedPostIDsParams) ([]pgtype.UUID, error)
+	GetUsersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]User, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

@@ -102,6 +102,8 @@ func (app *application) Mount() http.Handler {
 		// user routes
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/u/{username}", userHandler.HandleGetUserByUsername)
+			r.Get("/u/{username}/posts", userHandler.HandleGetUserPosts)
+			r.Get("/u/{username}/liked-posts", userHandler.HandleGetLikedPosts)
 			r.Get("/{id}", userHandler.HandleGetUserByID)
 			r.Group(func(r chi.Router) {
 				r.Use(authMiddleware.UserAuthentication) // Apply authentication middleware to all /users routes

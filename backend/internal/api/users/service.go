@@ -3,10 +3,13 @@ package users
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
+	"github.com/neevan0842/BlogSphere/backend/utils"
+	"golang.org/x/sync/errgroup"
 )
 
 type svc struct {
@@ -46,4 +49,340 @@ func (s *svc) updateUserDescription(ctx context.Context, userID pgtype.UUID, des
 		return sqlc.User{}, fmt.Errorf("failed to update user description: %s", err.Error())
 	}
 	return user, nil
+}
+
+func (s *svc) getPostsByUsername(ctx context.Context, username pgtype.Text) ([]UserPostDTO, error) {
+	// fetch posts by username
+	posts, err := s.repo.GetPostsByUsername(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get posts by username: %s", err.Error())
+	}
+
+	if len(posts) == 0 {
+		return []UserPostDTO{}, nil
+	}
+
+	// extract post IDs and author IDs for batch fetching
+	postIDs := make([]pgtype.UUID, len(posts))
+	authorIDmap := make(map[string]bool)
+
+	for i, post := range posts {
+		postIDs[i] = post.ID
+		authorIDmap[post.AuthorID.String()] = true
+	}
+
+	authorIDs, i := make([]pgtype.UUID, len(authorIDmap)), 0
+	for authorID := range authorIDmap {
+		authorIDs[i], _ = utils.StrToUUID(authorID)
+		i++
+	}
+
+	// fetch all data in parallel
+	var (
+		authors       []sqlc.User
+		categories    []sqlc.GetCategoriesByPostIDsRow
+		likeCounts    []sqlc.GetLikeCountsByPostIDsRow
+		commentCounts []sqlc.GetCommentCountsByPostIDsRow
+		mu            sync.Mutex
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+
+	// Fetch authors in parallel
+	g.Go(func() error {
+		result, err := s.repo.GetUsersByIDs(gCtx, authorIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get authors: %w", err)
+		}
+		mu.Lock()
+		authors = result
+		mu.Unlock()
+		return nil
+	})
+
+	// Fetch categories in parallel
+	g.Go(func() error {
+		result, err := s.repo.GetCategoriesByPostIDs(gCtx, postIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get categories: %w", err)
+		}
+		mu.Lock()
+		categories = result
+		mu.Unlock()
+		return nil
+	})
+
+	// Fetch like counts in parallel
+	g.Go(func() error {
+		result, err := s.repo.GetLikeCountsByPostIDs(gCtx, postIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get like counts: %w", err)
+		}
+		mu.Lock()
+		likeCounts = result
+		mu.Unlock()
+		return nil
+	})
+
+	// Fetch comment counts in parallel
+	g.Go(func() error {
+		result, err := s.repo.GetCommentCountsByPostIDs(gCtx, postIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get comment counts: %w", err)
+		}
+		mu.Lock()
+		commentCounts = result
+		mu.Unlock()
+		return nil
+	})
+
+	// wait for all fetches to complete
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	// build lookups maps
+	authorMap := make(map[string]sqlc.User)
+	for _, author := range authors {
+		authorMap[author.ID.String()] = author
+	}
+
+	categoryMap := make(map[string][]CategoryDTO)
+	for _, cat := range categories {
+		postIDStr := cat.PostID.String()
+		categoryMap[postIDStr] = append(categoryMap[postIDStr], CategoryDTO{
+			ID:        cat.ID.String(),
+			Name:      cat.Name,
+			Slug:      cat.Slug,
+			CreatedAt: cat.CreatedAt.Time,
+		})
+	}
+
+	likeCountMap := make(map[string]int64)
+	for _, likeCount := range likeCounts {
+		likeCountMap[likeCount.PostID.String()] = likeCount.LikeCount
+	}
+
+	commentCountMap := make(map[string]int64)
+	for _, commentCount := range commentCounts {
+		commentCountMap[commentCount.PostID.String()] = commentCount.CommentCount
+	}
+
+	// assemble final DTOs
+	result := make([]UserPostDTO, len(posts))
+	for i, post := range posts {
+		postIDStr := post.ID.String()
+		authorIDStr := post.AuthorID.String()
+
+		author := authorMap[authorIDStr]
+
+		result[i] = UserPostDTO{
+			ID:          postIDStr,
+			AuthorID:    authorIDStr,
+			Title:       post.Title,
+			Slug:        post.Slug,
+			Body:        post.Body,
+			IsPublished: post.IsPublished,
+			CreatedAt:   post.CreatedAt.Time,
+			UpdatedAt:   post.UpdatedAt.Time,
+			Author: AuthorDTO{
+				ID:        author.ID.String(),
+				GoogleID:  author.GoogleID,
+				Username:  author.Username.String,
+				Email:     author.Email,
+				AvatarURL: author.AvatarUrl.String,
+				CreatedAt: author.CreatedAt.Time,
+				UpdatedAt: author.UpdatedAt.Time,
+			},
+			Categories:   categoryMap[postIDStr],
+			LikeCount:    likeCountMap[postIDStr],
+			CommentCount: commentCountMap[postIDStr],
+		}
+
+		if result[i].Categories == nil {
+			result[i].Categories = []CategoryDTO{}
+		}
+	}
+
+	return result, nil
+}
+
+func (s *svc) getLikedPostsByUsername(ctx context.Context, username pgtype.Text, requestingUserID *pgtype.UUID) ([]LikedPostDTO, error) {
+	// fetch liked posts by username
+	posts, err := s.repo.GetPostsLikedByUsername(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get liked posts by username: %s", err.Error())
+	}
+
+	if len(posts) == 0 {
+		return []LikedPostDTO{}, nil
+	}
+
+	// extract post IDs and author IDs
+	postIDs := make([]pgtype.UUID, len(posts))
+	authorIDmap := make(map[string]bool)
+
+	for i, post := range posts {
+		postIDs[i] = post.ID
+		authorIDmap[post.AuthorID.String()] = true
+	}
+
+	authorIDs, i := make([]pgtype.UUID, len(authorIDmap)), 0
+	for authorID := range authorIDmap {
+		authorIDs[i], _ = utils.StrToUUID(authorID)
+		i++
+	}
+
+	// fetch all data in parallel
+	var (
+		authors          []sqlc.User
+		categories       []sqlc.GetCategoriesByPostIDsRow
+		likeCounts       []sqlc.GetLikeCountsByPostIDsRow
+		commentCounts    []sqlc.GetCommentCountsByPostIDsRow
+		userLikedPostIDs []pgtype.UUID
+		mu               sync.Mutex
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+
+	// Fetch authors
+	g.Go(func() error {
+		result, err := s.repo.GetUsersByIDs(gCtx, authorIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get authors: %w", err)
+		}
+		mu.Lock()
+		authors = result
+		mu.Unlock()
+		return nil
+	})
+
+	// Fetch categories
+	g.Go(func() error {
+		result, err := s.repo.GetCategoriesByPostIDs(gCtx, postIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get categories: %w", err)
+		}
+		mu.Lock()
+		categories = result
+		mu.Unlock()
+		return nil
+	})
+
+	// Fetch like counts
+	g.Go(func() error {
+		result, err := s.repo.GetLikeCountsByPostIDs(gCtx, postIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get like counts: %w", err)
+		}
+		mu.Lock()
+		likeCounts = result
+		mu.Unlock()
+		return nil
+	})
+
+	// Fetch comment counts
+	g.Go(func() error {
+		result, err := s.repo.GetCommentCountsByPostIDs(gCtx, postIDs)
+		if err != nil {
+			return fmt.Errorf("failed to get comment counts: %w", err)
+		}
+		mu.Lock()
+		commentCounts = result
+		mu.Unlock()
+		return nil
+	})
+
+	// fetch user likes posts IDs
+	if requestingUserID != nil && requestingUserID.Valid {
+		g.Go(func() error {
+			result, err := s.repo.GetUserLikedPostIDs(gCtx, sqlc.GetUserLikedPostIDsParams{
+				UserID:  *requestingUserID,
+				Column2: postIDs,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to get user liked post IDs: %w", err)
+			}
+			mu.Lock()
+			userLikedPostIDs = result
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	// wait for all fetches to complete
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	// build lookups maps
+	authorMap := make(map[string]sqlc.User)
+	for _, author := range authors {
+		authorMap[author.ID.String()] = author
+	}
+
+	categoryMap := make(map[string][]CategoryDTO)
+	for _, cat := range categories {
+		postIDStr := cat.PostID.String()
+		categoryMap[postIDStr] = append(categoryMap[postIDStr], CategoryDTO{
+			ID:        cat.ID.String(),
+			Name:      cat.Name,
+			Slug:      cat.Slug,
+			CreatedAt: cat.CreatedAt.Time,
+		})
+	}
+
+	likeCountMap := make(map[string]int64)
+	for _, likeCount := range likeCounts {
+		likeCountMap[likeCount.PostID.String()] = likeCount.LikeCount
+	}
+
+	commentCountMap := make(map[string]int64)
+	for _, commentCount := range commentCounts {
+		commentCountMap[commentCount.PostID.String()] = commentCount.CommentCount
+	}
+
+	userLikedPostIDMap := make(map[string]bool)
+	for _, likedPostID := range userLikedPostIDs {
+		userLikedPostIDMap[likedPostID.String()] = true
+	}
+
+	// assemble final DTOs
+	result := make([]LikedPostDTO, len(posts))
+	for i, post := range posts {
+		postIDStr := post.ID.String()
+		authorIDStr := post.AuthorID.String()
+
+		author := authorMap[authorIDStr]
+
+		result[i] = LikedPostDTO{
+			ID:          postIDStr,
+			AuthorID:    authorIDStr,
+			Title:       post.Title,
+			Slug:        post.Slug,
+			Body:        post.Body,
+			IsPublished: post.IsPublished,
+			CreatedAt:   post.CreatedAt.Time,
+			UpdatedAt:   post.UpdatedAt.Time,
+			Author: AuthorDTO{
+				ID:        author.ID.String(),
+				GoogleID:  author.GoogleID,
+				Username:  author.Username.String,
+				Email:     author.Email,
+				AvatarURL: author.AvatarUrl.String,
+				CreatedAt: author.CreatedAt.Time,
+				UpdatedAt: author.UpdatedAt.Time,
+			},
+			Categories:   categoryMap[postIDStr],
+			LikeCount:    likeCountMap[postIDStr],
+			CommentCount: commentCountMap[postIDStr],
+			UserHasLiked: userLikedPostIDMap[postIDStr],
+		}
+
+		if result[i].Categories == nil {
+			result[i].Categories = []CategoryDTO{}
+		}
+	}
+
+	return result, nil
 }

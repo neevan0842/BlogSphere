@@ -69,24 +69,20 @@ func PermissionDenied(w http.ResponseWriter) {
 
 func GetUserIDFromToken(w http.ResponseWriter, tokenString string) (pgtype.UUID, error) {
 	if tokenString == "" {
-		PermissionDenied(w)
 		return pgtype.UUID{}, fmt.Errorf("missing token")
 	}
 	token, err := validateJWT(tokenString)
 	if err != nil || !token.Valid {
-		PermissionDenied(w)
 		return pgtype.UUID{}, fmt.Errorf("invalid token: %s", err.Error())
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 	userID, ok := claims["userID"].(string)
 	if !ok {
-		PermissionDenied(w)
 		return pgtype.UUID{}, fmt.Errorf("invalid token claims: userID not found")
 	}
 	userIDUUID, err := StrToUUID(userID)
 	if err != nil {
-		PermissionDenied(w)
 		return pgtype.UUID{}, fmt.Errorf("invalid userID in token: %s", err.Error())
 	}
 	return userIDUUID, nil

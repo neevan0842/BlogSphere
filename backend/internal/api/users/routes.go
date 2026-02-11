@@ -112,3 +112,56 @@ func (h *handler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, updatedUser)
 }
+
+func (h *handler) HandleGetUserPosts(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+
+	// verify user exists
+	_, err := h.service.getUserByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""})
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("user not found"))
+		return
+	}
+
+	posts, err := h.service.getPostsByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""})
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to fetch user posts: %s", err.Error()))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, posts)
+}
+
+func (h *handler) HandleGetLikedPosts(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+
+	// verify user exists
+	_, err := h.service.getUserByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""})
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("user not found"))
+		return
+	}
+
+	// check if requester is authenticated to determine whether to include "liked_by_requester" field
+	var requestingUserID *pgtype.UUID
+	token := utils.GetTokenFromRequest(r)
+	userIDUUID, err := utils.GetUserIDFromToken(w, token)
+	if err != nil {
+		requestingUserID = nil // requester is not authenticated
+	} else {
+		user, err := h.service.getUserByID(r.Context(), userIDUUID)
+		if err != nil {
+			requestingUserID = nil // requester is not authenticated
+		} else {
+			requestingUserID = &user.ID
+		}
+	}
+
+	posts, err := h.service.getLikedPostsByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""}, requestingUserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to fetch liked posts: %s", err.Error()))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, posts)
+}
