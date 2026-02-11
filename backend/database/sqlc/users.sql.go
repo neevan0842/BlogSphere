@@ -14,7 +14,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (google_id, username, email, avatar_url)
 VALUES ($1, $2, $3, $4)
-RETURNING id, google_id, username, email, avatar_url, created_at, updated_at
+RETURNING id, google_id, username, email, description, avatar_url, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -37,6 +37,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.GoogleID,
 		&i.Username,
 		&i.Email,
+		&i.Description,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -45,7 +46,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByGoogleID = `-- name: GetUserByGoogleID :one
-SELECT id, google_id, username, email, avatar_url, created_at, updated_at FROM users 
+SELECT id, google_id, username, email, description, avatar_url, created_at, updated_at FROM users 
 WHERE google_id = $1
 `
 
@@ -57,6 +58,7 @@ func (q *Queries) GetUserByGoogleID(ctx context.Context, googleID string) (User,
 		&i.GoogleID,
 		&i.Username,
 		&i.Email,
+		&i.Description,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -65,7 +67,7 @@ func (q *Queries) GetUserByGoogleID(ctx context.Context, googleID string) (User,
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, google_id, username, email, avatar_url, created_at, updated_at FROM users 
+SELECT id, google_id, username, email, description, avatar_url, created_at, updated_at FROM users 
 WHERE id = $1
 `
 
@@ -77,6 +79,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.GoogleID,
 		&i.Username,
 		&i.Email,
+		&i.Description,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -85,7 +88,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, google_id, username, email, avatar_url, created_at, updated_at FROM users 
+SELECT id, google_id, username, email, description, avatar_url, created_at, updated_at FROM users 
 WHERE username = $1
 `
 
@@ -97,6 +100,35 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username pgtype.Text) (
 		&i.GoogleID,
 		&i.Username,
 		&i.Email,
+		&i.Description,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET description = $2, updated_at = now()
+WHERE id = $1
+RETURNING id, google_id, username, email, description, avatar_url, created_at, updated_at
+`
+
+type UpdateUserParams struct {
+	ID          pgtype.UUID `json:"id"`
+	Description pgtype.Text `json:"description"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser, arg.ID, arg.Description)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.GoogleID,
+		&i.Username,
+		&i.Email,
+		&i.Description,
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,

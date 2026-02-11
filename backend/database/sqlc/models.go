@@ -55,13 +55,14 @@ type PostLike struct {
 }
 
 type User struct {
-	ID        pgtype.UUID        `json:"id"`
-	GoogleID  string             `json:"google_id"`
-	Username  pgtype.Text        `json:"username"`
-	Email     string             `json:"email"`
-	AvatarUrl pgtype.Text        `json:"avatar_url"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ID          pgtype.UUID        `json:"id"`
+	GoogleID    string             `json:"google_id"`
+	Username    pgtype.Text        `json:"username"`
+	Email       string             `json:"email"`
+	Description pgtype.Text        `json:"description"`
+	AvatarUrl   pgtype.Text        `json:"avatar_url"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 type UserFollow struct {

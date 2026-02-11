@@ -4,6 +4,7 @@ CREATE TABLE users (
     google_id TEXT NOT NULL UNIQUE,
     username TEXT,
     email TEXT NOT NULL UNIQUE,
+    description TEXT,
     avatar_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
