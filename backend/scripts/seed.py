@@ -271,11 +271,6 @@ def seed_posts(cursor, user_ids: List[str], count: int = 100) -> List[str]:
 
         is_published = random.random() > 0.2  # 80% published
         created_at = random_timestamp(120, 1)
-        published_at = (
-            created_at + timedelta(hours=random.randint(1, 48))
-            if is_published
-            else None
-        )
         updated_at = created_at
 
         posts_data.append(
@@ -286,7 +281,6 @@ def seed_posts(cursor, user_ids: List[str], count: int = 100) -> List[str]:
                 slug,
                 body,
                 is_published,
-                published_at,
                 created_at,
                 updated_at,
             )
@@ -302,7 +296,6 @@ def seed_posts(cursor, user_ids: List[str], count: int = 100) -> List[str]:
             "slug",
             "body",
             "is_published",
-            "published_at",
             "created_at",
             "updated_at",
         ],

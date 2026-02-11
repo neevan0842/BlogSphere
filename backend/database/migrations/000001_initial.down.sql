@@ -1,6 +1,5 @@
 -- Drop indexes
 DROP INDEX IF EXISTS idx_comment_post_id;
-DROP INDEX IF EXISTS idx_post_published_at;
 
 -- Drop tables in reverse order (respecting foreign key constraints)
 DROP TABLE IF EXISTS user_follows;

@@ -26,7 +26,6 @@ CREATE TABLE posts (
     slug TEXT NOT NULL UNIQUE,
     body TEXT NOT NULL,
     is_published BOOLEAN NOT NULL DEFAULT FALSE,
-    published_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -73,5 +72,4 @@ CREATE TABLE user_follows (
 );
 
 -- Useful Indexes
-CREATE INDEX idx_post_published_at ON posts(published_at);
 CREATE INDEX idx_comment_post_id ON comments(post_id);

@@ -38,7 +38,6 @@ type Post struct {
 	Slug        string             `json:"slug"`
 	Body        string             `json:"body"`
 	IsPublished bool               `json:"is_published"`
-	PublishedAt pgtype.Timestamptz `json:"published_at"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
