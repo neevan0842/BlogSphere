@@ -44,3 +44,21 @@ func (s *svc) getUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, e
 	}
 	return user, nil
 }
+
+func (s *svc) getPostBySlug(ctx context.Context, slug string, requestingUserID *pgtype.UUID) (common.PostCardDTO, error) {
+	post, err := s.repo.GetPostBySlug(ctx, slug)
+	if err != nil {
+		return common.PostCardDTO{}, fmt.Errorf("failed to get post by slug: %s", err.Error())
+	}
+
+	posts, err := common.EnrichPostsWithDetails(ctx, s.repo, []sqlc.Post{post}, requestingUserID)
+	if err != nil {
+		return common.PostCardDTO{}, fmt.Errorf("failed to enrich post details: %s", err.Error())
+	}
+
+	if len(posts) == 0 {
+		return common.PostCardDTO{}, fmt.Errorf("post not found")
+	}
+
+	return posts[0], nil
+}

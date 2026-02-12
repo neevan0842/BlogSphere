@@ -58,3 +58,8 @@ FROM posts p
 WHERE p.title ILIKE '%' || COALESCE($1, '') || '%'
 ORDER BY p.created_at DESC
 LIMIT $2 OFFSET $3;
+
+-- name: GetPostBySlug :one
+SELECT * 
+FROM posts 
+WHERE slug = $1;

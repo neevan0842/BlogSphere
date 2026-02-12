@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/common"
@@ -64,4 +65,16 @@ func (h *handler) HandleGetPosts(w http.ResponseWriter, r *http.Request) {
 // getRequestingUserID extracts and validates the user ID from the request token
 func (h *handler) getRequestingUserID(w http.ResponseWriter, r *http.Request) *pgtype.UUID {
 	return common.GetRequestingUserID(r.Context(), w, r, h.repo)
+}
+
+func (h *handler) HandleGetPostsBySlug(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+	requestingUserID := h.getRequestingUserID(w, r)
+
+	post, err := h.service.getPostBySlug(r.Context(), slug, requestingUserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusNotFound, fmt.Errorf("failed to fetch post: %s", err.Error()))
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, post)
 }

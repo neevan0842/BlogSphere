@@ -122,6 +122,7 @@ func (app *application) Mount() http.Handler {
 		// post routes
 		r.Route("/posts", func(r chi.Router) {
 			r.Get("/", postHandler.HandleGetPosts)
+			r.Get("/{slug}", postHandler.HandleGetPostsBySlug)
 		})
 	})
 

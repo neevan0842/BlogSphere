@@ -168,6 +168,28 @@ func (q *Queries) GetPostBySearchPaginated(ctx context.Context, arg GetPostBySea
 	return items, nil
 }
 
+const getPostBySlug = `-- name: GetPostBySlug :one
+SELECT id, author_id, title, slug, body, is_published, created_at, updated_at 
+FROM posts 
+WHERE slug = $1
+`
+
+func (q *Queries) GetPostBySlug(ctx context.Context, slug string) (Post, error) {
+	row := q.db.QueryRow(ctx, getPostBySlug, slug)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Title,
+		&i.Slug,
+		&i.Body,
+		&i.IsPublished,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getPostsByUsername = `-- name: GetPostsByUsername :many
 SELECT p.id, p.author_id, p.title, p.slug, p.body, p.is_published, p.created_at, p.updated_at
 FROM posts p
