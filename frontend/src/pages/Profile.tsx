@@ -9,7 +9,7 @@ import {
   getUserPosts,
   logout,
   updateUserDescription,
-} from "../api/userAuth";
+} from "../api/userApi";
 import BlogPostCard from "../components/BlogPostCard";
 import useUserStore from "../store/userStore";
 import toast from "react-hot-toast";

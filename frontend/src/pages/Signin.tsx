@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router";
-import { getGoogleAuthURL } from "../api/userAuth";
+import { getGoogleAuthURL } from "../api/userApi";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
 import useUserStore from "../store/userStore";

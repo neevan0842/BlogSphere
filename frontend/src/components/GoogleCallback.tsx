@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router";
-import { exchangeGoogleCodeForToken } from "../api/userAuth";
+import { exchangeGoogleCodeForToken } from "../api/userApi";
 
 const GoogleCallback = () => {
   const [searchParams] = useSearchParams();

@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router";
 import { useEffect, useState } from "react";
 import { isTokenExpired } from "../utils/auth.utils";
 import useUserStore from "../store/userStore";
-import { refreshAccessToken } from "../api/userAuth";
+import { refreshAccessToken } from "../api/userApi";
 
 function ProtectedRoute() {
   const { clearUser } = useUserStore();
