@@ -125,6 +125,49 @@ func (q *Queries) GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.
 	return items, nil
 }
 
+const getPostBySearchPaginated = `-- name: GetPostBySearchPaginated :many
+SELECT p.id, p.author_id, p.title, p.slug, p.body, p.is_published, p.created_at, p.updated_at
+FROM posts p
+WHERE p.title ILIKE '%' || $1 || '%'
+ORDER BY p.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetPostBySearchPaginatedParams struct {
+	Column1 pgtype.Text `json:"column_1"`
+	Limit   int32       `json:"limit"`
+	Offset  int32       `json:"offset"`
+}
+
+func (q *Queries) GetPostBySearchPaginated(ctx context.Context, arg GetPostBySearchPaginatedParams) ([]Post, error) {
+	rows, err := q.db.Query(ctx, getPostBySearchPaginated, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.AuthorID,
+			&i.Title,
+			&i.Slug,
+			&i.Body,
+			&i.IsPublished,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostsByUsername = `-- name: GetPostsByUsername :many
 SELECT p.id, p.author_id, p.title, p.slug, p.body, p.is_published, p.created_at, p.updated_at
 FROM posts p

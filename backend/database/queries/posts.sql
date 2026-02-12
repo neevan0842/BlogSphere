@@ -51,3 +51,10 @@ SELECT post_id
 FROM post_likes
 WHERE user_id = $1
 AND post_id = ANY($2::uuid[]);
+
+-- name: GetPostBySearchPaginated :many
+SELECT p.*
+FROM posts p
+WHERE p.title ILIKE '%' || $1 || '%'
+ORDER BY p.created_at DESC
+LIMIT $2 OFFSET $3;
