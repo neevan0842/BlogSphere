@@ -11,10 +11,15 @@ import (
 )
 
 type Querier interface {
+	CreateComment(ctx context.Context, arg CreateCommentParams) (Comment, error)
+	CreatePostLike(ctx context.Context, arg CreatePostLikeParams) (PostLike, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteComment(ctx context.Context, id pgtype.UUID) error
+	DeletePostLike(ctx context.Context, arg DeletePostLikeParams) error
 	DeleteUserByID(ctx context.Context, id pgtype.UUID) error
 	GetCategoriesByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCategoriesByPostIDsRow, error)
 	GetCommentCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCommentCountsByPostIDsRow, error)
+	GetCommentsByPostSlug(ctx context.Context, slug string) ([]Comment, error)
 	GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetLikeCountsByPostIDsRow, error)
 	GetPostBySearchPaginated(ctx context.Context, arg GetPostBySearchPaginatedParams) ([]Post, error)
 	GetPostBySlug(ctx context.Context, slug string) (Post, error)
@@ -25,6 +30,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, username pgtype.Text) (User, error)
 	GetUserLikedPostIDs(ctx context.Context, arg GetUserLikedPostIDsParams) ([]pgtype.UUID, error)
 	GetUsersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]User, error)
+	UpdateComment(ctx context.Context, arg UpdateCommentParams) (Comment, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

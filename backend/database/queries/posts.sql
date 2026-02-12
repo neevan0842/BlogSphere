@@ -63,3 +63,13 @@ LIMIT $2 OFFSET $3;
 SELECT * 
 FROM posts 
 WHERE slug = $1;
+
+-- name: CreatePostLike :one
+INSERT INTO post_likes (post_id, user_id)
+VALUES ($1, $2)
+ON CONFLICT (post_id, user_id) DO NOTHING
+RETURNING *;
+
+-- name: DeletePostLike :exec
+DELETE FROM post_likes
+WHERE post_id = $1 AND user_id = $2;

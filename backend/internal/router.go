@@ -123,6 +123,7 @@ func (app *application) Mount() http.Handler {
 		r.Route("/posts", func(r chi.Router) {
 			r.Get("/", postHandler.HandleGetPosts)
 			r.Get("/{slug}", postHandler.HandleGetPostsBySlug)
+			r.Get("/{slug}/comments", postHandler.HandleGetCommentsByPostSlug)
 		})
 	})
 

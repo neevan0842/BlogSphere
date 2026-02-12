@@ -78,3 +78,14 @@ func (h *handler) HandleGetPostsBySlug(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.WriteJSON(w, http.StatusOK, post)
 }
+
+func (h *handler) HandleGetCommentsByPostSlug(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+
+	comments, err := h.service.getCommentsByPostSlug(r.Context(), slug)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to fetch comments: %s", err.Error()))
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, comments)
+}

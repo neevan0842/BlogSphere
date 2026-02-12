@@ -1,6 +1,8 @@
 package common
 
-import "time"
+import (
+	"time"
+)
 
 // CategoryDTO represents category information in post responses
 type CategoryDTO struct {
@@ -36,4 +38,15 @@ type PostCardDTO struct {
 	LikeCount    int64         `json:"like_count"`
 	CommentCount int64         `json:"comment_count"`
 	UserHasLiked bool          `json:"user_has_liked"`
+}
+
+type CommentDTO struct {
+	ID              string    `json:"id"`
+	PostID          string    `json:"post_id"`
+	UserID          string    `json:"user_id"`
+	ParentCommentID string    `json:"parent_comment_id"`
+	Body            string    `json:"body"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	Author          AuthorDTO `json:"author"`
 }

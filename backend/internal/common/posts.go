@@ -185,3 +185,60 @@ func EnrichPostsWithDetails(ctx context.Context, repo *sqlc.Queries, posts []sql
 
 	return result, nil
 }
+
+func EnrichCommentsWithAuthors(ctx context.Context, repo *sqlc.Queries, comments []sqlc.Comment) ([]CommentDTO, error) {
+	if len(comments) == 0 {
+		return []CommentDTO{}, nil
+	}
+
+	// extract unique author IDs
+	authorIDmap := make(map[string]bool)
+
+	for _, comment := range comments {
+		authorIDmap[comment.UserID.String()] = true
+	}
+
+	authorIDs := make([]pgtype.UUID, 0, len(authorIDmap))
+	for authorID := range authorIDmap {
+		id, _ := utils.StrToUUID(authorID)
+		authorIDs = append(authorIDs, id)
+	}
+
+	// fetch authors
+	authors, err := repo.GetUsersByIDs(ctx, authorIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get authors: %w", err)
+	}
+
+	// build author lookup map
+	authorMap := make(map[string]sqlc.User)
+	for _, author := range authors {
+		authorMap[author.ID.String()] = author
+	}
+
+	// assemble final DTOs
+	result := make([]CommentDTO, len(comments))
+	for i, comment := range comments {
+		authorIDStr := comment.UserID.String()
+		author := authorMap[authorIDStr]
+		result[i] = CommentDTO{
+			ID:              comment.ID.String(),
+			PostID:          comment.PostID.String(),
+			UserID:          authorIDStr,
+			ParentCommentID: comment.ParentCommentID.String(),
+			Body:            comment.Body,
+			CreatedAt:       comment.CreatedAt.Time,
+			UpdatedAt:       comment.UpdatedAt.Time,
+			Author: AuthorDTO{
+				ID:        author.ID.String(),
+				GoogleID:  author.GoogleID,
+				Username:  author.Username.String,
+				Email:     author.Email,
+				AvatarURL: author.AvatarUrl.String,
+				CreatedAt: author.CreatedAt.Time,
+				UpdatedAt: author.UpdatedAt.Time,
+			},
+		}
+	}
+	return result, nil
+}

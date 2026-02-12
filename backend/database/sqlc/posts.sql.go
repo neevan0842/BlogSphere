@@ -11,6 +11,40 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createPostLike = `-- name: CreatePostLike :one
+INSERT INTO post_likes (post_id, user_id)
+VALUES ($1, $2)
+ON CONFLICT (post_id, user_id) DO NOTHING
+RETURNING id, post_id, user_id
+`
+
+type CreatePostLikeParams struct {
+	PostID pgtype.UUID `json:"post_id"`
+	UserID pgtype.UUID `json:"user_id"`
+}
+
+func (q *Queries) CreatePostLike(ctx context.Context, arg CreatePostLikeParams) (PostLike, error) {
+	row := q.db.QueryRow(ctx, createPostLike, arg.PostID, arg.UserID)
+	var i PostLike
+	err := row.Scan(&i.ID, &i.PostID, &i.UserID)
+	return i, err
+}
+
+const deletePostLike = `-- name: DeletePostLike :exec
+DELETE FROM post_likes
+WHERE post_id = $1 AND user_id = $2
+`
+
+type DeletePostLikeParams struct {
+	PostID pgtype.UUID `json:"post_id"`
+	UserID pgtype.UUID `json:"user_id"`
+}
+
+func (q *Queries) DeletePostLike(ctx context.Context, arg DeletePostLikeParams) error {
+	_, err := q.db.Exec(ctx, deletePostLike, arg.PostID, arg.UserID)
+	return err
+}
+
 const getCategoriesByPostIDs = `-- name: GetCategoriesByPostIDs :many
 SELECT
     pc.post_id,

@@ -62,3 +62,12 @@ func (s *svc) getPostBySlug(ctx context.Context, slug string, requestingUserID *
 
 	return posts[0], nil
 }
+
+func (s *svc) getCommentsByPostSlug(ctx context.Context, slug string) ([]common.CommentDTO, error) {
+	comments, err := s.repo.GetCommentsByPostSlug(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get comments by post slug: %s", err.Error())
+	}
+
+	return common.EnrichCommentsWithAuthors(ctx, s.repo, comments)
+}
