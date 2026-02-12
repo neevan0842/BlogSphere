@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	HandleCreateComment(ctx context.Context, postID string, userID string, body string) (sqlc.Comment, error)
+	HandleDeleteComment(ctx context.Context, commentID string) error
 }
 
 type CreateCommentRequest struct {

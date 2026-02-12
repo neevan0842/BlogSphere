@@ -32,3 +32,9 @@ func (s *svc) HandleCreateComment(ctx context.Context, postID string, userID str
 
 	return comment, err
 }
+
+func (s *svc) HandleDeleteComment(ctx context.Context, commentID string) error {
+	commentIDUUID, _ := utils.StrToUUID(commentID)
+
+	return s.repo.DeleteComment(ctx, commentIDUUID)
+}
