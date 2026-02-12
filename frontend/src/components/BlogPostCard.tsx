@@ -14,7 +14,7 @@ interface BlogPostCardProps {
   slug: string;
   like_count: number;
   comment_count: number;
-  user_has_liked?: boolean; // Optional prop to indicate if the current user has liked the post
+  user_has_liked: boolean;
 }
 
 const BlogPostCard = ({

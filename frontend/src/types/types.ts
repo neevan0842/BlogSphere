@@ -107,7 +107,7 @@ export interface CategoryDisplay extends Category {
 // ============================================================================
 
 // Author info returned in post responses (simplified User)
-export interface PostAuthor {
+export interface PostAuthorType {
   id: string;
   google_id: string;
   username: string;
@@ -118,15 +118,15 @@ export interface PostAuthor {
 }
 
 // Category info in post responses
-export interface PostCategory {
+export interface PostCategoryType {
   id: string;
   name: string;
   slug: string;
   created_at: string;
 }
 
-// User's own posts response (GET /users/u/{username}/posts)
-export interface UserPost {
+// Post card type returned in user posts and liked posts API responses
+export interface PostCardType {
   id: string;
   author_id: string;
   title: string;
@@ -135,24 +135,8 @@ export interface UserPost {
   is_published: boolean;
   created_at: string;
   updated_at: string;
-  author: PostAuthor;
-  categories: PostCategory[];
-  like_count: number;
-  comment_count: number;
-}
-
-// Posts liked by user response (GET /users/u/{username}/liked-posts)
-export interface LikedPost {
-  id: string;
-  author_id: string;
-  title: string;
-  slug: string;
-  body: string;
-  is_published: boolean;
-  created_at: string;
-  updated_at: string;
-  author: PostAuthor;
-  categories: PostCategory[];
+  author: PostAuthorType;
+  categories: PostCategoryType[];
   like_count: number;
   comment_count: number;
   user_has_liked: boolean;

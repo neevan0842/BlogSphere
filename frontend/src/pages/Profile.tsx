@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router";
 import PageLayout from "../components/PageLayout";
 import { useEffect, useState } from "react";
-import type { LikedPost, User, UserPost } from "../types/types";
+import type { PostCardType, User } from "../types/types";
 import { Edit2, LogOut, Trash2 } from "lucide-react";
 import {
   getUserDetailsFromUsername,
@@ -20,8 +20,8 @@ const Profile = () => {
   const { user: authenticatedUser, isAuthenticated } = useUserStore();
   const [user, setUser] = useState<User | null>(null);
   const [isOwner, setIsOwner] = useState<boolean>(false);
-  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
-  const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
+  const [userPosts, setUserPosts] = useState<PostCardType[]>([]);
+  const [likedPosts, setLikedPosts] = useState<PostCardType[]>([]);
   const [activeTab, setActiveTab] = useState<"posts" | "liked">("posts");
   const [isEditing, setIsEditing] = useState(false);
   const [editDescription, setEditDescription] = useState("");
@@ -224,7 +224,7 @@ const Profile = () => {
                         slug={post.slug}
                         like_count={post.like_count}
                         comment_count={post.comment_count}
-                        user_has_liked={false} //TODO: Add liked status to UserPost type and fetch it from API
+                        user_has_liked={post.user_has_liked}
                       />
                       {isOwner && (
                         <div className="absolute top-4 right-4 flex gap-2">

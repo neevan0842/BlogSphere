@@ -1,7 +1,7 @@
 import { api } from "./api";
 import { getUserIDFromToken } from "../utils/auth.utils";
 import useUserStore from "../store/userStore";
-import type { LikedPost, User, UserPost } from "../types/types";
+import type { PostCardType, User } from "../types/types";
 
 const getGoogleAuthURL = async (): Promise<string> => {
   try {
@@ -31,7 +31,7 @@ const exchangeGoogleCodeForToken = async (
       return false;
     }
 
-    //getch user details
+    //fetch user details
     const user = await getUserDetailsFromUserID(userID);
     if (!user) {
       return false;
@@ -96,19 +96,19 @@ const getUserDetailsFromUsername = async (
   }
 };
 
-const getUserPosts = async (username: string): Promise<UserPost[]> => {
+const getUserPosts = async (username: string): Promise<PostCardType[]> => {
   try {
     const response = await api.get(`/users/u/${username}/posts`);
-    return response.data as UserPost[];
+    return response.data as PostCardType[];
   } catch (error) {
     return [];
   }
 };
 
-const getUserLikedPosts = async (username: string): Promise<LikedPost[]> => {
+const getUserLikedPosts = async (username: string): Promise<PostCardType[]> => {
   try {
     const response = await api.get(`/users/u/${username}/liked-posts`);
-    return response.data as LikedPost[];
+    return response.data as PostCardType[];
   } catch (error) {
     return [];
   }
