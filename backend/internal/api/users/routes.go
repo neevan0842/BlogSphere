@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
+	"github.com/neevan0842/BlogSphere/backend/internal/common"
 	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 )
@@ -13,29 +15,20 @@ import (
 type handler struct {
 	service Service
 	logger  *zap.SugaredLogger
+	repo    *sqlc.Queries
 }
 
-func NewHandler(service Service, logger *zap.SugaredLogger) *handler {
+func NewHandler(service Service, logger *zap.SugaredLogger, repo *sqlc.Queries) *handler {
 	return &handler{
 		service: service,
 		logger:  logger,
+		repo:    repo,
 	}
 }
 
 // getRequestingUserID extracts and validates the user ID from the request token
 func (h *handler) getRequestingUserID(w http.ResponseWriter, r *http.Request) *pgtype.UUID {
-	token := utils.GetTokenFromRequest(r)
-	userIDUUID, err := utils.GetUserIDFromToken(w, token)
-	if err != nil {
-		return nil
-	}
-
-	user, err := h.service.getUserByID(r.Context(), userIDUUID)
-	if err != nil {
-		return nil
-	}
-
-	return &user.ID
+	return common.GetRequestingUserID(r.Context(), w, r, h.repo)
 }
 
 func (h *handler) HandleGetCurrentUser(w http.ResponseWriter, r *http.Request) {

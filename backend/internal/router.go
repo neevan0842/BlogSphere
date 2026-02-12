@@ -78,17 +78,19 @@ func (app *application) Mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	// Initialize services and handlers
-	authService := auth.NewService(sqlc.New(app.db), app.db)
+	repo := sqlc.New(app.db)
+
+	authService := auth.NewService(repo, app.db)
 	authHandler := auth.NewHandler(authService, app.logger)
 
-	userService := users.NewService(sqlc.New(app.db), app.db)
-	userHandler := users.NewHandler(userService, app.logger)
+	userService := users.NewService(repo, app.db)
+	userHandler := users.NewHandler(userService, app.logger, repo)
 
-	postService := posts.NewService(sqlc.New(app.db), app.db)
-	postHandler := posts.NewHandler(postService, app.logger)
+	postService := posts.NewService(repo, app.db)
+	postHandler := posts.NewHandler(postService, app.logger, repo)
 
 	// Initialize middleware
-	authMiddleware := mw.NewMiddleware(sqlc.New(app.db), app.logger)
+	authMiddleware := mw.NewMiddleware(repo, app.logger)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
