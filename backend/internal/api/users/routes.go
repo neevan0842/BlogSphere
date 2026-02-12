@@ -56,7 +56,7 @@ func (h *handler) HandleGetCurrentUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleGetUserByID(w http.ResponseWriter, r *http.Request) {
-	userID := chi.URLParam(r, "id")
+	userID := chi.URLParam(r, "userID")
 
 	userIDUUID, err := utils.StrToUUID(userID)
 	if err != nil {
@@ -107,7 +107,7 @@ func (h *handler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// verify user is updating their own profile
-	requestedUserID := chi.URLParam(r, "id")
+	requestedUserID := chi.URLParam(r, "userID")
 	if userID != requestedUserID {
 		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you can only update your own profile"))
 		return
@@ -138,7 +138,7 @@ func (h *handler) HandleDeleteCurrentUser(w http.ResponseWriter, r *http.Request
 	}
 
 	// verify user is deleting their own account
-	requestedUserID := chi.URLParam(r, "id")
+	requestedUserID := chi.URLParam(r, "userID")
 	if userID != requestedUserID {
 		utils.WriteError(w, http.StatusForbidden, fmt.Errorf("you can only delete your own account"))
 		return

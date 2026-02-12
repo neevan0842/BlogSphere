@@ -114,12 +114,12 @@ func (app *application) Mount() http.Handler {
 			r.Get("/u/{username}", userHandler.HandleGetUserByUsername)
 			r.Get("/u/{username}/posts", userHandler.HandleGetUserPosts)
 			r.Get("/u/{username}/liked-posts", userHandler.HandleGetLikedPosts)
-			r.Get("/{id}", userHandler.HandleGetUserByID)
+			r.Get("/{userID}", userHandler.HandleGetUserByID)
 			r.Group(func(r chi.Router) {
 				r.Use(authMiddleware.UserAuthentication) // Apply authentication middleware to all /users routes
 				r.Get("/me", userHandler.HandleGetCurrentUser)
-				r.Patch("/{id}", userHandler.HandleUpdateUser)
-				r.Delete("/{id}", userHandler.HandleDeleteCurrentUser)
+				r.Patch("/{userID}", userHandler.HandleUpdateUser)
+				r.Delete("/{userID}", userHandler.HandleDeleteCurrentUser)
 			})
 		})
 
@@ -130,7 +130,7 @@ func (app *application) Mount() http.Handler {
 			r.Get("/{slug}/comments", postHandler.HandleGetCommentsByPostSlug)
 			r.Group(func(r chi.Router) {
 				r.Use(authMiddleware.UserAuthentication)
-				r.Get("/{postID}/likes", postHandler.HandlePostLikes)
+				r.Post("/{postID}/likes", postHandler.HandlePostLikes)
 			})
 		})
 
