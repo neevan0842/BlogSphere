@@ -291,7 +291,7 @@ const Profile = () => {
       </section>
 
       {/* Danger Zone */}
-      {!isEditing && (
+      {!isEditing && isOwner && (
         <section className="container mx-auto px-4 py-12">
           <div className="max-w-3xl mx-auto">
             <div className="border-2 border-destructive rounded-lg p-6 bg-destructive/15">
