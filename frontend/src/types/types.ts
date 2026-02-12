@@ -86,9 +86,6 @@ export interface PostWithDetails extends Post {
 // Comment with author information
 export interface CommentWithAuthor extends Comment {
   author: User;
-  like_count: number;
-  user_has_liked?: boolean; // Whether current user has liked this comment
-  is_own?: boolean; // Whether comment belongs to current user
 }
 
 // ============================================================================
@@ -147,4 +144,8 @@ export interface PaginatedPostsResponse {
   page: number;
   limit: number;
   hasMore: boolean;
+}
+
+export interface PostLikeResponse {
+  liked: boolean;
 }

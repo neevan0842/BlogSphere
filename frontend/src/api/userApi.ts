@@ -3,7 +3,7 @@ import { getUserIDFromToken } from "../utils/auth.utils";
 import useUserStore from "../store/userStore";
 import type { PostType, User } from "../types/types";
 
-const getGoogleAuthURL = async (): Promise<string> => {
+export const getGoogleAuthURL = async (): Promise<string> => {
   try {
     const response = await api.get("/auth/google");
     return response.data.url || "";
@@ -12,7 +12,7 @@ const getGoogleAuthURL = async (): Promise<string> => {
   }
 };
 
-const exchangeGoogleCodeForToken = async (
+export const exchangeGoogleCodeForToken = async (
   code: string,
   state: string,
 ): Promise<boolean> => {
@@ -46,7 +46,7 @@ const exchangeGoogleCodeForToken = async (
   }
 };
 
-const refreshAccessToken = async (): Promise<boolean> => {
+export const refreshAccessToken = async (): Promise<boolean> => {
   try {
     const response = await api.post("/auth/refresh", {
       refresh_token: localStorage.getItem("refresh-token"),
@@ -74,7 +74,7 @@ const refreshAccessToken = async (): Promise<boolean> => {
   }
 };
 
-const getUserDetailsFromUserID = async (
+export const getUserDetailsFromUserID = async (
   userID: string,
 ): Promise<User | null> => {
   try {
@@ -85,7 +85,7 @@ const getUserDetailsFromUserID = async (
   }
 };
 
-const getUserDetailsFromUsername = async (
+export const getUserDetailsFromUsername = async (
   username: string,
 ): Promise<User | null> => {
   try {
@@ -96,7 +96,7 @@ const getUserDetailsFromUsername = async (
   }
 };
 
-const getUserPosts = async (username: string): Promise<PostType[]> => {
+export const getUserPosts = async (username: string): Promise<PostType[]> => {
   try {
     const response = await api.get(`/users/u/${username}/posts`);
     return response.data as PostType[];
@@ -105,7 +105,9 @@ const getUserPosts = async (username: string): Promise<PostType[]> => {
   }
 };
 
-const getUserLikedPosts = async (username: string): Promise<PostType[]> => {
+export const getUserLikedPosts = async (
+  username: string,
+): Promise<PostType[]> => {
   try {
     const response = await api.get(`/users/u/${username}/liked-posts`);
     return response.data as PostType[];
@@ -114,14 +116,14 @@ const getUserLikedPosts = async (username: string): Promise<PostType[]> => {
   }
 };
 
-const logout = () => {
+export const logout = () => {
   localStorage.removeItem("access-token");
   localStorage.removeItem("refresh-token");
   const { clearUser } = useUserStore.getState();
   clearUser();
 };
 
-const updateUserDescription = async (
+export const updateUserDescription = async (
   userID: string,
   description: string,
 ): Promise<User | null> => {
@@ -139,7 +141,7 @@ const updateUserDescription = async (
   }
 };
 
-const deleteUserAccount = async (userID: string): Promise<boolean> => {
+export const deleteUserAccount = async (userID: string): Promise<boolean> => {
   try {
     const response = await api.delete(`/users/${userID}`);
     if (response.status === 204) {
@@ -149,17 +151,4 @@ const deleteUserAccount = async (userID: string): Promise<boolean> => {
   } catch (error) {
     return false;
   }
-};
-
-export {
-  getGoogleAuthURL,
-  exchangeGoogleCodeForToken,
-  refreshAccessToken,
-  getUserDetailsFromUserID,
-  getUserDetailsFromUsername,
-  getUserPosts,
-  getUserLikedPosts,
-  logout,
-  updateUserDescription,
-  deleteUserAccount,
 };

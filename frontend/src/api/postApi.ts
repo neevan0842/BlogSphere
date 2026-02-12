@@ -1,7 +1,12 @@
-import type { PaginatedPostsResponse } from "../types/types";
+import type {
+  CommentWithAuthor,
+  PaginatedPostsResponse,
+  PostLikeResponse,
+  PostType,
+} from "../types/types";
 import { api } from "./api";
 
-const getPostsPaginated = async (
+export const getPostsPaginated = async (
   search: string,
   page: number,
   limit: number,
@@ -21,4 +26,42 @@ const getPostsPaginated = async (
   }
 };
 
-export { getPostsPaginated };
+export const getPostBySlug = async (slug: string): Promise<PostType | null> => {
+  try {
+    if (!slug.trim()) {
+      return null;
+    }
+    const response = await api.get(`/posts/${slug.trim()}`);
+    return response.data as PostType;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getCommentsByPostSlug = async (
+  slug: string,
+): Promise<CommentWithAuthor[] | null> => {
+  try {
+    if (!slug.trim()) {
+      return null;
+    }
+    const response = await api.get(`/posts/${slug.trim()}/comments`);
+    return response.data as CommentWithAuthor[];
+  } catch (error) {
+    return null;
+  }
+};
+
+export const togglePostLikeByPostID = async (
+  postID: string,
+): Promise<PostLikeResponse | null> => {
+  try {
+    if (!postID.trim()) {
+      return null;
+    }
+    const response = await api.post(`/posts/${postID.trim()}/likes`);
+    return response.data as PostLikeResponse;
+  } catch (error) {
+    return null;
+  }
+};
