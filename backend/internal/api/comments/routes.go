@@ -39,7 +39,7 @@ func (h *handler) HandleCreateComment(w http.ResponseWriter, r *http.Request) {
 	// Get requesting user ID (set by authentication middleware)
 	userID, _ := utils.GetUserIDFromContext(r.Context())
 
-	comment, err := h.service.HandleCreateComment(r.Context(), payload.PostID, userID, payload.Body)
+	comment, err := h.service.CreateComment(r.Context(), payload.PostID, userID, payload.Body)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -67,7 +67,7 @@ func (h *handler) HandleDeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.HandleDeleteComment(r.Context(), commentID); err != nil {
+	if err := h.service.DeleteComment(r.Context(), commentID); err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -75,4 +75,42 @@ func (h *handler) HandleDeleteComment(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *handler) HandleUpdateComment(w http.ResponseWriter, r *http.Request) {}
+func (h *handler) HandleUpdateComment(w http.ResponseWriter, r *http.Request) {
+	commentID := chi.URLParam(r, "commentID")
+	commentIDUUID, _ := utils.StrToUUID(commentID)
+
+	var payload UpdateCommentRequest
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	//validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	comment, err := h.repo.GetCommentByID(r.Context(), commentIDUUID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// Get user ID from context (set by authentication middleware)
+	userID, _ := utils.GetUserIDFromContext(r.Context())
+
+	// Only allow comment author to update the comment
+	if comment.UserID.String() != userID {
+		utils.WriteError(w, http.StatusForbidden, err)
+		return
+	}
+
+	updatedComment, err := h.service.UpdateComment(r.Context(), commentIDUUID, payload.Body)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, updatedComment)
+}

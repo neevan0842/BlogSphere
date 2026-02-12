@@ -3,6 +3,7 @@ package comments
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/utils"
@@ -20,7 +21,7 @@ func NewService(repo *sqlc.Queries, db *pgxpool.Pool) Service {
 	}
 }
 
-func (s *svc) HandleCreateComment(ctx context.Context, postID string, userID string, body string) (sqlc.Comment, error) {
+func (s *svc) CreateComment(ctx context.Context, postID string, userID string, body string) (sqlc.Comment, error) {
 	postIDUUID, _ := utils.StrToUUID(postID)
 	userIDUUID, _ := utils.StrToUUID(userID)
 
@@ -33,8 +34,15 @@ func (s *svc) HandleCreateComment(ctx context.Context, postID string, userID str
 	return comment, err
 }
 
-func (s *svc) HandleDeleteComment(ctx context.Context, commentID string) error {
+func (s *svc) DeleteComment(ctx context.Context, commentID string) error {
 	commentIDUUID, _ := utils.StrToUUID(commentID)
 
 	return s.repo.DeleteComment(ctx, commentIDUUID)
+}
+
+func (s *svc) UpdateComment(ctx context.Context, commentID pgtype.UUID, body string) (sqlc.Comment, error) {
+	return s.repo.UpdateComment(ctx, sqlc.UpdateCommentParams{
+		ID:   commentID,
+		Body: body,
+	})
 }
