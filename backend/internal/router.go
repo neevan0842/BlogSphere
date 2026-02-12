@@ -11,6 +11,7 @@ import (
 	envs "github.com/neevan0842/BlogSphere/backend/config"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/auth"
+	"github.com/neevan0842/BlogSphere/backend/internal/api/comments"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/posts"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/users"
 
@@ -89,6 +90,9 @@ func (app *application) Mount() http.Handler {
 	postService := posts.NewService(repo, app.db)
 	postHandler := posts.NewHandler(postService, app.logger, repo)
 
+	commentService := comments.NewService(repo, app.db)
+	commentHandler := comments.NewHandler(commentService, app.logger, repo)
+
 	// Initialize middleware
 	authMiddleware := mw.NewMiddleware(repo, app.logger)
 
@@ -128,6 +132,14 @@ func (app *application) Mount() http.Handler {
 				r.Use(authMiddleware.UserAuthentication)
 				r.Get("/{postID}/likes", postHandler.HandlePostLikes)
 			})
+		})
+
+		// comment routes
+		r.Route("/comments", func(r chi.Router) {
+			r.Use(authMiddleware.UserAuthentication)
+			r.Post("/", commentHandler.HandleCreateComment)
+			r.Delete("/{commentID}", commentHandler.HandleDeleteComment)
+			r.Patch("/{commentID}", commentHandler.HandleUpdateComment)
 		})
 	})
 
