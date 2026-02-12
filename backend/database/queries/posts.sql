@@ -55,6 +55,6 @@ AND post_id = ANY($2::uuid[]);
 -- name: GetPostBySearchPaginated :many
 SELECT p.*
 FROM posts p
-WHERE p.title ILIKE '%' || $1 || '%'
+WHERE p.title ILIKE '%' || COALESCE($1, '') || '%'
 ORDER BY p.created_at DESC
 LIMIT $2 OFFSET $3;

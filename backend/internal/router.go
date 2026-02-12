@@ -11,6 +11,7 @@ import (
 	envs "github.com/neevan0842/BlogSphere/backend/config"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/auth"
+	"github.com/neevan0842/BlogSphere/backend/internal/api/posts"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/users"
 
 	mw "github.com/neevan0842/BlogSphere/backend/internal/middleware"
@@ -83,6 +84,9 @@ func (app *application) Mount() http.Handler {
 	userService := users.NewService(sqlc.New(app.db), app.db)
 	userHandler := users.NewHandler(userService, app.logger)
 
+	postService := posts.NewService(sqlc.New(app.db), app.db)
+	postHandler := posts.NewHandler(postService, app.logger)
+
 	// Initialize middleware
 	authMiddleware := mw.NewMiddleware(sqlc.New(app.db), app.logger)
 
@@ -111,6 +115,11 @@ func (app *application) Mount() http.Handler {
 				r.Patch("/{id}", userHandler.HandleUpdateUser)
 				r.Delete("/{id}", userHandler.HandleDeleteCurrentUser)
 			})
+		})
+
+		// post routes
+		r.Route("/posts", func(r chi.Router) {
+			r.Get("/", postHandler.HandleGetPosts)
 		})
 	})
 

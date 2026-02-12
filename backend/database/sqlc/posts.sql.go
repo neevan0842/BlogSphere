@@ -128,7 +128,7 @@ func (q *Queries) GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.
 const getPostBySearchPaginated = `-- name: GetPostBySearchPaginated :many
 SELECT p.id, p.author_id, p.title, p.slug, p.body, p.is_published, p.created_at, p.updated_at
 FROM posts p
-WHERE p.title ILIKE '%' || $1 || '%'
+WHERE p.title ILIKE '%' || COALESCE($1, '') || '%'
 ORDER BY p.created_at DESC
 LIMIT $2 OFFSET $3
 `
