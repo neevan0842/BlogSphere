@@ -11,30 +11,32 @@ const GoogleCallback = () => {
   useEffect(() => {
     // Prevent duplicate processing (React StrictMode runs effects twice)
     if (hasProcessed.current) return;
-    
+
     const processGoogleCallback = async () => {
       hasProcessed.current = true;
-      
+
       const code = searchParams.get("code");
       const state = searchParams.get("state");
-      
+
       if (!code || !state) {
         toast.error("Google authentication failed. Please try again.");
         navigate("/signin");
         return;
       }
-      
+
       const success = await exchangeGoogleCodeForToken(code, state);
       if (success) {
+        toast.success("Signed in with Google successfully!");
         navigate("/");
       } else {
+        toast.error("Failed to sign in with Google. Please try again.");
         navigate("/signin");
       }
     };
-    
+
     processGoogleCallback();
   }, [searchParams, navigate]);
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">

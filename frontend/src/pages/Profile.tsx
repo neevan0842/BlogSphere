@@ -12,6 +12,7 @@ import {
 } from "../api/userAuth";
 import BlogPostCard from "../components/BlogPostCard";
 import useUserStore from "../store/userStore";
+import toast from "react-hot-toast";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const Profile = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
+    toast.success("Logged out successfully.");
   };
 
   const handleDeleteAccount = () => {
@@ -53,6 +55,7 @@ const Profile = () => {
     }
     setUser(updatedUser);
     setIsEditing(false);
+    toast.success("Profile updated successfully.");
   };
 
   useEffect(() => {
@@ -68,6 +71,7 @@ const Profile = () => {
         setLikedPosts(likedPostsData || []);
         setIsOwner(isAuthenticated && authenticatedUser?.id === userData.id);
       } else {
+        toast.error("User not found.");
         navigate("/not-found");
       }
     };

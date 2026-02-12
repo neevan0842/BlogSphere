@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import { api } from "./api";
 import { getUserIDFromToken } from "../utils/auth.utils";
 import useUserStore from "../store/userStore";
@@ -9,7 +8,6 @@ const getGoogleAuthURL = async (): Promise<string> => {
     const response = await api.get("/auth/google");
     return response.data.url || "";
   } catch (error) {
-    toast.error("Failed to get Google authentication URL. Please try again.");
     return "";
   }
 };
@@ -30,26 +28,20 @@ const exchangeGoogleCodeForToken = async (
     // Decode user ID from access token
     const userID = getUserIDFromToken(response.data.access_token);
     if (!userID) {
-      toast.error(
-        "Failed to decode user information from token. Please try again.",
-      );
       return false;
     }
 
     //getch user details
     const user = await getUserDetailsFromUserID(userID);
     if (!user) {
-      toast.error("Failed to fetch user details. Please try again.");
       return false;
     }
 
     // Update user store with authenticated user ID
     const { setUser } = useUserStore.getState();
     setUser(user);
-    toast.success("Successfully signed in with Google!");
     return true;
   } catch (error) {
-    toast.error("Google authentication failed. Please try again.");
     return false;
   }
 };
@@ -63,16 +55,12 @@ const refreshAccessToken = async (): Promise<boolean> => {
     // Decode user ID from new access token
     const userID = getUserIDFromToken(response.data.access_token);
     if (!userID) {
-      toast.error(
-        "Failed to decode user information from refreshed token. Please sign in again.",
-      );
       return false;
     }
 
     //fetch user details
     const user = await getUserDetailsFromUserID(userID);
     if (!user) {
-      toast.error("Failed to fetch user details. Please sign in again.");
       return false;
     }
 
@@ -82,7 +70,6 @@ const refreshAccessToken = async (): Promise<boolean> => {
     localStorage.setItem("access-token", response.data.access_token);
     return true;
   } catch (error) {
-    toast.error("Failed to refresh access token. Please sign in again.");
     return false;
   }
 };
@@ -94,7 +81,6 @@ const getUserDetailsFromUserID = async (
     const response = await api.get(`/users/${userID}`);
     return response.data as User;
   } catch (error) {
-    toast.error("Failed to fetch user details. Please try again.");
     return null;
   }
 };
@@ -106,7 +92,6 @@ const getUserDetailsFromUsername = async (
     const response = await api.get(`/users/u/${username}`);
     return response.data as User;
   } catch (error) {
-    toast.error("Failed to fetch user details. Please try again.");
     return null;
   }
 };
@@ -116,7 +101,6 @@ const getUserPosts = async (username: string): Promise<UserPost[]> => {
     const response = await api.get(`/users/u/${username}/posts`);
     return response.data as UserPost[];
   } catch (error) {
-    toast.error("Failed to fetch user's posts. Please try again.");
     return [];
   }
 };
@@ -126,7 +110,6 @@ const getUserLikedPosts = async (username: string): Promise<LikedPost[]> => {
     const response = await api.get(`/users/u/${username}/liked-posts`);
     return response.data as LikedPost[];
   } catch (error) {
-    toast.error("Failed to fetch user's liked posts. Please try again.");
     return [];
   }
 };
@@ -136,7 +119,6 @@ const logout = () => {
   localStorage.removeItem("refresh-token");
   const { clearUser } = useUserStore.getState();
   clearUser();
-  toast.success("Successfully logged out.");
 };
 
 const updateUserDescription = async (
@@ -153,7 +135,6 @@ const updateUserDescription = async (
     }
     return null;
   } catch (error) {
-    toast.error("Failed to update user description. Please try again.");
     return null;
   }
 };
