@@ -2,8 +2,10 @@ package posts
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
@@ -70,4 +72,38 @@ func (s *svc) getCommentsByPostSlug(ctx context.Context, slug string) ([]common.
 	}
 
 	return common.EnrichCommentsWithAuthors(ctx, s.repo, comments)
+}
+
+func (s *svc) togglePostLike(ctx context.Context, postID pgtype.UUID, userID pgtype.UUID) (bool, error) {
+	// Check if user has already liked the post
+	_, err := s.repo.GetPostLike(ctx, sqlc.GetPostLikeParams{
+		PostID: postID,
+		UserID: userID,
+	})
+
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return false, fmt.Errorf("failed to check existing like: %s", err.Error())
+	}
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		// User has not liked the post, so add like
+		_, err := s.repo.CreatePostLike(ctx, sqlc.CreatePostLikeParams{
+			PostID: postID,
+			UserID: userID,
+		})
+		if err != nil {
+			return false, fmt.Errorf("failed to like post: %s", err.Error())
+		}
+		return true, nil // Post is now liked
+	} else {
+		// User has already liked the post, so remove like
+		err := s.repo.DeletePostLike(ctx, sqlc.DeletePostLikeParams{
+			PostID: postID,
+			UserID: userID,
+		})
+		if err != nil {
+			return false, fmt.Errorf("failed to unlike post: %s", err.Error())
+		}
+		return false, nil // Post is now unliked
+	}
 }

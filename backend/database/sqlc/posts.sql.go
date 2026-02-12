@@ -224,6 +224,24 @@ func (q *Queries) GetPostBySlug(ctx context.Context, slug string) (Post, error) 
 	return i, err
 }
 
+const getPostLike = `-- name: GetPostLike :one
+SELECT id, post_id, user_id
+FROM post_likes
+WHERE post_id = $1 AND user_id = $2
+`
+
+type GetPostLikeParams struct {
+	PostID pgtype.UUID `json:"post_id"`
+	UserID pgtype.UUID `json:"user_id"`
+}
+
+func (q *Queries) GetPostLike(ctx context.Context, arg GetPostLikeParams) (PostLike, error) {
+	row := q.db.QueryRow(ctx, getPostLike, arg.PostID, arg.UserID)
+	var i PostLike
+	err := row.Scan(&i.ID, &i.PostID, &i.UserID)
+	return i, err
+}
+
 const getPostsByUsername = `-- name: GetPostsByUsername :many
 SELECT p.id, p.author_id, p.title, p.slug, p.body, p.is_published, p.created_at, p.updated_at
 FROM posts p

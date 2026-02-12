@@ -124,6 +124,10 @@ func (app *application) Mount() http.Handler {
 			r.Get("/", postHandler.HandleGetPosts)
 			r.Get("/{slug}", postHandler.HandleGetPostsBySlug)
 			r.Get("/{slug}/comments", postHandler.HandleGetCommentsByPostSlug)
+			r.Group(func(r chi.Router) {
+				r.Use(authMiddleware.UserAuthentication)
+				r.Get("/{postID}/likes", postHandler.HandlePostLikes)
+			})
 		})
 	})
 

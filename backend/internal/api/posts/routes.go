@@ -89,3 +89,20 @@ func (h *handler) HandleGetCommentsByPostSlug(w http.ResponseWriter, r *http.Req
 	}
 	utils.WriteJSON(w, http.StatusOK, comments)
 }
+
+// toggle like/unlike a post
+func (h *handler) HandlePostLikes(w http.ResponseWriter, r *http.Request) {
+	postID := chi.URLParam(r, "postID")
+	userID, _ := utils.GetUserIDFromContext(r.Context())
+
+	postIDUUID, _ := utils.StrToUUID(postID)
+	userIDUUID, _ := utils.StrToUUID(userID)
+
+	user_has_liked, err := h.service.togglePostLike(r.Context(), postIDUUID, userIDUUID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to toggle post like: %s", err.Error()))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]bool{"liked": user_has_liked})
+}

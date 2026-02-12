@@ -73,3 +73,8 @@ RETURNING *;
 -- name: DeletePostLike :exec
 DELETE FROM post_likes
 WHERE post_id = $1 AND user_id = $2;
+
+-- name: GetPostLike :one
+SELECT *
+FROM post_likes
+WHERE post_id = $1 AND user_id = $2;
