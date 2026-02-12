@@ -139,6 +139,18 @@ const updateUserDescription = async (
   }
 };
 
+const deleteUserAccount = async (userID: string): Promise<boolean> => {
+  try {
+    const response = await api.delete(`/users/${userID}`);
+    if (response.status === 204) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+};
+
 export {
   getGoogleAuthURL,
   exchangeGoogleCodeForToken,
@@ -149,4 +161,5 @@ export {
   getUserLikedPosts,
   logout,
   updateUserDescription,
+  deleteUserAccount,
 };

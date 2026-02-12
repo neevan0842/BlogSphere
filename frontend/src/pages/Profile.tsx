@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { PostCardType, User } from "../types/types";
 import { Edit2, LogOut, Trash2 } from "lucide-react";
 import {
+  deleteUserAccount,
   getUserDetailsFromUsername,
   getUserLikedPosts,
   getUserPosts,
@@ -32,15 +33,20 @@ const Profile = () => {
     toast.success("Logged out successfully.");
   };
 
-  const handleDeleteAccount = () => {
-    //TODO: Implement account deletion API call and logic
+  const handleDeleteAccount = async () => {
     if (
       confirm(
         "Are you sure you want to delete your account? This action cannot be undone.",
       )
     ) {
-      logout();
-      navigate("/");
+      const result = await deleteUserAccount(user?.id || "");
+      if (result) {
+        toast.success("Account deleted successfully.");
+        navigate("/");
+        logout();
+      } else {
+        toast.error("Failed to delete account. Please try again later.");
+      }
     }
   };
 
@@ -59,23 +65,34 @@ const Profile = () => {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchUserProfileDetails = async () => {
       const [userData, userPostsData, likedPostsData] = await Promise.all([
         getUserDetailsFromUsername(username || ""),
         getUserPosts(username || ""),
         getUserLikedPosts(username || ""),
       ]);
-      if (userData) {
-        setUser(userData);
-        setUserPosts(userPostsData || []);
-        setLikedPosts(likedPostsData || []);
-        setIsOwner(isAuthenticated && authenticatedUser?.id === userData.id);
-      } else {
-        toast.error("User not found.");
-        navigate("/not-found");
+
+      // Only update state and show errors if component is still mounted
+      if (isMounted) {
+        if (userData) {
+          setUser(userData);
+          setUserPosts(userPostsData || []);
+          setLikedPosts(likedPostsData || []);
+          setIsOwner(isAuthenticated && authenticatedUser?.id === userData.id);
+        } else {
+          toast.error("User not found.");
+          navigate("/not-found");
+        }
       }
     };
+
     fetchUserProfileDetails();
+
+    return () => {
+      isMounted = false;
+    };
   }, [username, navigate, isAuthenticated, authenticatedUser]);
 
   // Fetch user details on component mount
