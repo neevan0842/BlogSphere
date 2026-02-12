@@ -3,7 +3,7 @@ import PageLayout from "../components/PageLayout";
 import useUserStore from "../store/userStore";
 import BlogPostCard from "../components/BlogPostCard";
 import { useEffect, useRef, useState } from "react";
-import type { PostCardType } from "../types/types";
+import type { PostType } from "../types/types";
 import { getPostsPaginated } from "../api/postApi";
 import debounce from "lodash.debounce";
 import InfiniteScroll from "react-infinite-scroll-component";
@@ -11,7 +11,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 const Home = () => {
   const LIMIT = 20;
   const { isAuthenticated } = useUserStore();
-  const [posts, setPosts] = useState<PostCardType[]>([]);
+  const [posts, setPosts] = useState<PostType[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [inputValue, setInputValue] = useState("");

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router";
 import PageLayout from "../components/PageLayout";
 import { useEffect, useState } from "react";
-import type { PostCardType, User } from "../types/types";
+import type { PostType, User } from "../types/types";
 import { Edit2, LogOut, Trash2 } from "lucide-react";
 import {
   deleteUserAccount,
@@ -21,8 +21,8 @@ const Profile = () => {
   const { user: authenticatedUser, isAuthenticated } = useUserStore();
   const [user, setUser] = useState<User | null>(null);
   const [isOwner, setIsOwner] = useState<boolean>(false);
-  const [userPosts, setUserPosts] = useState<PostCardType[]>([]);
-  const [likedPosts, setLikedPosts] = useState<PostCardType[]>([]);
+  const [userPosts, setUserPosts] = useState<PostType[]>([]);
+  const [likedPosts, setLikedPosts] = useState<PostType[]>([]);
   const [activeTab, setActiveTab] = useState<"posts" | "liked">("posts");
   const [isEditing, setIsEditing] = useState(false);
   const [editDescription, setEditDescription] = useState("");

@@ -126,7 +126,7 @@ export interface PostCategoryType {
 }
 
 // Post card type returned in user posts and liked posts API responses
-export interface PostCardType {
+export interface PostType {
   id: string;
   author_id: string;
   title: string;
@@ -143,7 +143,7 @@ export interface PostCardType {
 }
 
 export interface PaginatedPostsResponse {
-  posts: PostCardType[];
+  posts: PostType[];
   page: number;
   limit: number;
   hasMore: boolean;
