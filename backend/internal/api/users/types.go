@@ -12,8 +12,8 @@ type Service interface {
 	getUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error)
 	getUserByUsername(ctx context.Context, username pgtype.Text) (sqlc.User, error)
 	updateUserDescription(ctx context.Context, userID pgtype.UUID, description pgtype.Text) (sqlc.User, error)
-	getPostsByUsername(ctx context.Context, username pgtype.Text) ([]UserPostDTO, error)
-	getLikedPostsByUsername(ctx context.Context, username pgtype.Text, requestingUserID *pgtype.UUID) ([]LikedPostDTO, error)
+	getPostsByUsername(ctx context.Context, username pgtype.Text, requestingUserID *pgtype.UUID) ([]PostCardDTO, error)
+	getLikedPostsByUsername(ctx context.Context, username pgtype.Text, requestingUserID *pgtype.UUID) ([]PostCardDTO, error)
 }
 
 type UpdateUserRequest struct {
@@ -39,24 +39,8 @@ type AuthorDTO struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// UserPostDTO represents a post by a user with enriched data
-type UserPostDTO struct {
-	ID           string        `json:"id"`
-	AuthorID     string        `json:"author_id"`
-	Title        string        `json:"title"`
-	Slug         string        `json:"slug"`
-	Body         string        `json:"body"`
-	IsPublished  bool          `json:"is_published"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
-	Author       AuthorDTO     `json:"author"`
-	Categories   []CategoryDTO `json:"categories"`
-	LikeCount    int64         `json:"like_count"`
-	CommentCount int64         `json:"comment_count"`
-}
-
-// LikedPostDTO represents a post liked by a user with enriched data
-type LikedPostDTO struct {
+// PostCardDTO represents the structure of a post card
+type PostCardDTO struct {
 	ID           string        `json:"id"`
 	AuthorID     string        `json:"author_id"`
 	Title        string        `json:"title"`

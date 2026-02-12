@@ -22,6 +22,22 @@ func NewHandler(service Service, logger *zap.SugaredLogger) *handler {
 	}
 }
 
+// getRequestingUserID extracts and validates the user ID from the request token
+func (h *handler) getRequestingUserID(w http.ResponseWriter, r *http.Request) *pgtype.UUID {
+	token := utils.GetTokenFromRequest(r)
+	userIDUUID, err := utils.GetUserIDFromToken(w, token)
+	if err != nil {
+		return nil
+	}
+
+	user, err := h.service.getUserByID(r.Context(), userIDUUID)
+	if err != nil {
+		return nil
+	}
+
+	return &user.ID
+}
+
 func (h *handler) HandleGetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by authentication middleware)
 	userID, ok := utils.GetUserIDFromContext(r.Context())
@@ -130,7 +146,10 @@ func (h *handler) HandleGetUserPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := h.service.getPostsByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""})
+	// check if requester is authenticated
+	requestingUserID := h.getRequestingUserID(w, r)
+
+	posts, err := h.service.getPostsByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""}, requestingUserID)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to fetch user posts: %s", err.Error()))
 		return
@@ -149,20 +168,8 @@ func (h *handler) HandleGetLikedPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if requester is authenticated to determine whether to include "liked_by_requester" field
-	var requestingUserID *pgtype.UUID
-	token := utils.GetTokenFromRequest(r)
-	userIDUUID, err := utils.GetUserIDFromToken(w, token)
-	if err != nil {
-		requestingUserID = nil // requester is not authenticated
-	} else {
-		user, err := h.service.getUserByID(r.Context(), userIDUUID)
-		if err != nil {
-			requestingUserID = nil // requester is not authenticated
-		} else {
-			requestingUserID = &user.ID
-		}
-	}
+	// check if requester is authenticated
+	requestingUserID := h.getRequestingUserID(w, r)
 
 	posts, err := h.service.getLikedPostsByUsername(r.Context(), pgtype.Text{String: username, Valid: username != ""}, requestingUserID)
 	if err != nil {
