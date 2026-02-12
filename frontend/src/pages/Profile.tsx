@@ -232,7 +232,6 @@ const Profile = () => {
                   {userPosts.map((post) => (
                     <div key={post.id} className="relative">
                       <BlogPostCard
-                        key={post.slug}
                         title={post.title}
                         body={post.body}
                         author={post.author}
@@ -281,7 +280,7 @@ const Profile = () => {
                 <div className="grid gap-6 md:grid-cols-2">
                   {likedPosts.map((post) => (
                     <BlogPostCard
-                      key={post.slug}
+                      key={post.id}
                       title={post.title}
                       body={post.body}
                       author={post.author}
