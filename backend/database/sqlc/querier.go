@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteUserByID(ctx context.Context, id pgtype.UUID) error
 	GetCategoriesByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCategoriesByPostIDsRow, error)
 	GetCommentCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCommentCountsByPostIDsRow, error)
 	GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetLikeCountsByPostIDsRow, error)

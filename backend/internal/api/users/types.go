@@ -14,6 +14,7 @@ type Service interface {
 	updateUserDescription(ctx context.Context, userID pgtype.UUID, description pgtype.Text) (sqlc.User, error)
 	getPostsByUsername(ctx context.Context, username pgtype.Text, requestingUserID *pgtype.UUID) ([]PostCardDTO, error)
 	getLikedPostsByUsername(ctx context.Context, username pgtype.Text, requestingUserID *pgtype.UUID) ([]PostCardDTO, error)
+	deleteUserByID(ctx context.Context, userID pgtype.UUID) error
 }
 
 type UpdateUserRequest struct {

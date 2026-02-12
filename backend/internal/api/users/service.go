@@ -243,3 +243,11 @@ func (s *svc) getLikedPostsByUsername(ctx context.Context, username pgtype.Text,
 
 	return s.enrichPostsWithDetails(ctx, posts, requestingUserID)
 }
+
+func (s *svc) deleteUserByID(ctx context.Context, userID pgtype.UUID) error {
+	err := s.repo.DeleteUserByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %s", err.Error())
+	}
+	return nil
+}

@@ -109,6 +109,7 @@ func (app *application) Mount() http.Handler {
 				r.Use(authMiddleware.UserAuthentication) // Apply authentication middleware to all /users routes
 				r.Get("/me", userHandler.HandleGetCurrentUser)
 				r.Patch("/{id}", userHandler.HandleUpdateUser)
+				r.Delete("/{id}", userHandler.HandleDeleteCurrentUser)
 			})
 		})
 	})

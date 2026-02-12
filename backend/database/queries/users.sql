@@ -20,3 +20,6 @@ UPDATE users
 SET description = $2, updated_at = now()
 WHERE id = $1
 RETURNING id, google_id, username, email, description, avatar_url, created_at, updated_at;
+
+-- name: DeleteUserByID :exec
+DELETE FROM users WHERE id = $1;
