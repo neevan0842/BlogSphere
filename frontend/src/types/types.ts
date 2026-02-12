@@ -141,3 +141,10 @@ export interface PostCardType {
   comment_count: number;
   user_has_liked: boolean;
 }
+
+export interface PaginatedPostsResponse {
+  posts: PostCardType[];
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
