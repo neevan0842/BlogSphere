@@ -12,6 +12,7 @@ import {
 } from "../api/postApi";
 import toast from "react-hot-toast";
 import { formatRelativeDate } from "../utils/date.utils";
+import { addCommentToPost } from "../api/commentApi";
 
 const Post = () => {
   const { isAuthenticated } = useUserStore();
@@ -39,13 +40,40 @@ const Post = () => {
     setLikeCount((prev) => prev + (result.liked ? 1 : -1));
   };
 
-  function handleAddComment(event: React.MouseEvent<HTMLButtonElement>): void {
+  const handleAddComment = async (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ): Promise<void> => {
     event.preventDefault();
     if (!isAuthenticated) {
       toast.error("You must be logged in to comment");
       return;
     }
-  }
+    const addedComment = await addCommentToPost({
+      postId: post?.id || "",
+      body: newComment || "",
+    });
+
+    if (!addedComment) {
+      toast.error("Failed to add comment. Please try again.");
+      return;
+    }
+    setComments((prevComments) => [addedComment, ...prevComments]);
+    setNewComment("");
+  };
+
+  const onUpdateComment = (id: string, body: string) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment.id === id ? { ...comment, body } : comment,
+      ),
+    );
+  };
+
+  const onDeleteComment = (id: string) => {
+    setComments((prevComments) =>
+      prevComments.filter((comment) => comment.id !== id),
+    );
+  };
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -113,29 +141,25 @@ const Post = () => {
           </h1>
 
           {/* Author Info */}
-          <div className="flex items-center gap-4 py-6 border-t border-b border-border">
-            <img
-              src={post.author.avatar_url || "/placeholder.svg"}
-              alt={post.author.username || "User"}
-              className="h-12 w-12 rounded-full object-cover"
-            />
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">
-                {post.author.username || "Anonymous"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {post.created_at
-                  ? formatRelativeDate(post.created_at)
-                  : "Draft"}
-              </p>
+          <Link to={`/u/${post.author.username}`} className="shrink-0">
+            <div className="flex items-center gap-4 py-6 border-t border-b border-border">
+              <img
+                src={post.author.avatar_url || "/placeholder.svg"}
+                alt={post.author.username || "User"}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <p className="font-semibold text-foreground">
+                  {post.author.username || "Anonymous"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {post.created_at
+                    ? formatRelativeDate(post.created_at)
+                    : "Draft"}
+                </p>
+              </div>
             </div>
-
-            {isAuthenticated && (
-              <button className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors font-medium">
-                Follow
-              </button>
-            )}
-          </div>
+          </Link>
         </header>
 
         {/* Article Content */}
@@ -227,9 +251,9 @@ const Post = () => {
               {comments.map((comment) => (
                 <Comment
                   key={comment.id}
-                  body={comment.body}
-                  author={comment.author}
-                  created_at={comment.created_at}
+                  comment={comment}
+                  onUpdateComment={onUpdateComment}
+                  onDeleteComment={onDeleteComment}
                 />
               ))}
             </div>
