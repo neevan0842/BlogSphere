@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/common"
+	"github.com/neevan0842/BlogSphere/backend/utils"
 )
 
 type svc struct {
@@ -107,4 +108,58 @@ func (s *svc) togglePostLike(ctx context.Context, postID pgtype.UUID, userID pgt
 		}
 		return false, nil // Post is now unliked
 	}
+}
+
+func (s *svc) CreatePost(ctx context.Context, title string, body string, authorID string, categoryIDs []string) (common.PostCardDTO, error) {
+	var createdPost sqlc.Post
+	err := common.ExecTx(ctx, s.db, func(q *sqlc.Queries) error {
+		// Generate slug from title
+		slug := utils.GenerateSlug(title)
+		authorUUID, err := utils.StrToUUID(authorID)
+		if err != nil {
+			return fmt.Errorf("invalid author ID: %s", err.Error())
+		}
+
+		// Create the post
+		post, err := q.CreatePost(ctx, sqlc.CreatePostParams{
+			Title:       title,
+			Body:        body,
+			Slug:        slug,
+			AuthorID:    authorUUID,
+			IsPublished: true,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create post: %s", err.Error())
+		}
+
+		// Associate post with categories
+		postIDUUIDs := make([]pgtype.UUID, len(categoryIDs))
+		categoryIDsUUIDs := make([]pgtype.UUID, len(categoryIDs))
+		for i, catID := range categoryIDs {
+			postIDUUIDs[i] = post.ID
+			categoryIDsUUIDs[i], err = utils.StrToUUID(catID)
+			if err != nil {
+				return fmt.Errorf("invalid category ID: %s", err.Error())
+			}
+		}
+
+		// Batch insert post-category associations using 'unnest'
+		err = q.BatchCreatePostCategories(ctx, sqlc.BatchCreatePostCategoriesParams{
+			PostID:     postIDUUIDs,
+			CategoryID: categoryIDsUUIDs})
+		if err != nil {
+			return fmt.Errorf("failed to associate post with category: %s", err.Error())
+		}
+
+		createdPost = post
+		return nil
+	})
+	if err != nil {
+		return common.PostCardDTO{}, err
+	}
+	posts, err := common.EnrichPostsWithDetails(ctx, s.repo, []sqlc.Post{createdPost}, &createdPost.AuthorID)
+	if err != nil {
+		return common.PostCardDTO{}, err
+	}
+	return posts[0], nil
 }

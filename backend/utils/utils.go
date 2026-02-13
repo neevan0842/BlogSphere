@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -35,4 +37,9 @@ func StrToUUID(str string) (pgtype.UUID, error) {
 		return pgtype.UUID{}, fmt.Errorf("invalid uuid string: %s", err.Error())
 	}
 	return uuid, nil
+}
+
+func GenerateSlug(title string) string {
+	base := slug.Make(title)
+	return base + "-" + uuid.NewString()[:8]
 }

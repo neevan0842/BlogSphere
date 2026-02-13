@@ -134,6 +134,7 @@ func (app *application) Mount() http.Handler {
 			r.Get("/{slug}/comments", postHandler.HandleGetCommentsByPostSlug)
 			r.Group(func(r chi.Router) {
 				r.Use(authMiddleware.UserAuthentication)
+				r.Post("/", postHandler.HandleCreatePost)
 				r.Post("/{postID}/likes", postHandler.HandlePostLikes)
 			})
 		})

@@ -11,7 +11,9 @@ import (
 )
 
 type Querier interface {
+	BatchCreatePostCategories(ctx context.Context, arg BatchCreatePostCategoriesParams) error
 	CreateComment(ctx context.Context, arg CreateCommentParams) (Comment, error)
+	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
 	CreatePostLike(ctx context.Context, arg CreatePostLikeParams) (PostLike, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteComment(ctx context.Context, id pgtype.UUID) error

@@ -14,6 +14,7 @@ type Service interface {
 	getPostBySlug(ctx context.Context, slug string, requestingUserID *pgtype.UUID) (common.PostCardDTO, error)
 	getCommentsByPostSlug(ctx context.Context, slug string) ([]common.CommentDTO, error)
 	togglePostLike(ctx context.Context, postID pgtype.UUID, userID pgtype.UUID) (bool, error)
+	CreatePost(ctx context.Context, title string, body string, authorID string, categoryIDs []string) (common.PostCardDTO, error)
 }
 
 type PaginatedResponse struct {
@@ -25,4 +26,10 @@ type PaginatedResponse struct {
 
 type PostLikeRequest struct {
 	PostID pgtype.UUID `json:"post_id"`
+}
+
+type CreatePostRequest struct {
+	Title       string   `json:"title" validate:"required,min=3,max=200"`
+	Body        string   `json:"body" validate:"required,min=10"`
+	CategoryIDs []string `json:"category_ids" validate:"required,min=1,max=3,dive,uuid"`
 }

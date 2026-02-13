@@ -81,3 +81,8 @@ WHERE post_id = $1 AND user_id = $2;
 SELECT *
 FROM post_likes
 WHERE post_id = $1 AND user_id = $2;
+
+-- name: CreatePost :one
+INSERT INTO posts (title, body, slug, author_id, is_published)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING *;

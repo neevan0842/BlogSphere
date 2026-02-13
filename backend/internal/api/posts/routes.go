@@ -107,3 +107,28 @@ func (h *handler) HandlePostLikes(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, map[string]bool{"liked": user_has_liked})
 }
+
+func (h *handler) HandleCreatePost(w http.ResponseWriter, r *http.Request) {
+	var payload CreatePostRequest
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request payload: %s", err.Error()))
+		return
+	}
+
+	// Validate required fields
+	if err := utils.Validate.Struct(payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("validation error: %s", err.Error()))
+		return
+	}
+
+	// Get authenticated user ID from context
+	authenticatedUserID, _ := utils.GetUserIDFromContext(r.Context())
+
+	post, err := h.service.CreatePost(r.Context(), payload.Title, payload.Body, authenticatedUserID, payload.CategoryIDs)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to create post: %s", err.Error()))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, post)
+}

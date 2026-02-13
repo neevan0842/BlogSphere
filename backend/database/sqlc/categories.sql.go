@@ -7,7 +7,24 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const batchCreatePostCategories = `-- name: BatchCreatePostCategories :exec
+INSERT INTO post_categories (post_id, category_id)
+SELECT unnest($1::uuid[]), unnest($2::uuid[])
+`
+
+type BatchCreatePostCategoriesParams struct {
+	PostID     []pgtype.UUID `json:"post_id"`
+	CategoryID []pgtype.UUID `json:"category_id"`
+}
+
+func (q *Queries) BatchCreatePostCategories(ctx context.Context, arg BatchCreatePostCategoriesParams) error {
+	_, err := q.db.Exec(ctx, batchCreatePostCategories, arg.PostID, arg.CategoryID)
+	return err
+}
 
 const getCategories = `-- name: GetCategories :many
 SELECT id, name, slug, description, icon, created_at FROM categories ORDER BY name

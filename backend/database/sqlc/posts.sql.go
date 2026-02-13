@@ -11,6 +11,42 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createPost = `-- name: CreatePost :one
+INSERT INTO posts (title, body, slug, author_id, is_published)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, author_id, title, slug, body, is_published, created_at, updated_at
+`
+
+type CreatePostParams struct {
+	Title       string      `json:"title"`
+	Body        string      `json:"body"`
+	Slug        string      `json:"slug"`
+	AuthorID    pgtype.UUID `json:"author_id"`
+	IsPublished bool        `json:"is_published"`
+}
+
+func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
+	row := q.db.QueryRow(ctx, createPost,
+		arg.Title,
+		arg.Body,
+		arg.Slug,
+		arg.AuthorID,
+		arg.IsPublished,
+	)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Title,
+		&i.Slug,
+		&i.Body,
+		&i.IsPublished,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createPostLike = `-- name: CreatePostLike :one
 INSERT INTO post_likes (post_id, user_id)
 VALUES ($1, $2)
