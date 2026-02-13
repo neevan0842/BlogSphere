@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
+	"github.com/neevan0842/BlogSphere/backend/internal/common"
 )
 
 type Service interface {
-	CreateComment(ctx context.Context, postID string, userID string, body string) (sqlc.Comment, error)
+	CreateComment(ctx context.Context, postID string, userID string, body string) (common.CommentDTO, error)
 	DeleteComment(ctx context.Context, commentID string) error
-	UpdateComment(ctx context.Context, commentID pgtype.UUID, body string) (sqlc.Comment, error)
+	UpdateComment(ctx context.Context, commentID pgtype.UUID, body string) (common.CommentDTO, error)
 }
 
 type CreateCommentRequest struct {

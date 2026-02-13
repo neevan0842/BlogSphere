@@ -45,7 +45,7 @@ func (h *handler) HandleCreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, comment)
+	utils.WriteJSON(w, http.StatusCreated, comment)
 }
 
 func (h *handler) HandleDeleteComment(w http.ResponseWriter, r *http.Request) {
