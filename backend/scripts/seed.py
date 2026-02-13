@@ -171,35 +171,85 @@ def seed_users(cursor, count: int = 20) -> List[str]:
     return user_ids
 
 
-def seed_categories(cursor, count: int = 10) -> List[str]:
+def seed_categories(cursor) -> List[str]:
     """Seed categories table and return list of category IDs."""
-    print(f"\nSeeding {count} categories...")
+    print(f"\nSeeding categories...")
 
-    category_names = [
-        "Technology",
-        "Design",
-        "Business",
-        "Travel",
-        "Lifestyle",
-        "Food",
-        "Health",
-        "Education",
+    categories = [
+        {
+            "name": "Technology",
+            "slug": "technology",
+            "description": "Latest trends in software, AI, web development, and digital innovation.",
+            "icon": "💻",
+        },
+        {
+            "name": "Design",
+            "slug": "design",
+            "description": "UI/UX design, creative inspiration, design systems, and visual art.",
+            "icon": "🎨",
+        },
+        {
+            "name": "Business",
+            "slug": "business",
+            "description": "Entrepreneurship, startups, productivity tips, and business strategies.",
+            "icon": "📈",
+        },
+        {
+            "name": "Travel",
+            "slug": "travel",
+            "description": "Travel guides, destination reviews, and adventure stories from around the world.",
+            "icon": "✈️",
+        },
+        {
+            "name": "Lifestyle",
+            "slug": "lifestyle",
+            "description": "Personal development, wellness, habits, and living your best life.",
+            "icon": "🌟",
+        },
+        {
+            "name": "Food",
+            "slug": "food",
+            "description": "Recipes, food reviews, cooking tips, and culinary adventures.",
+            "icon": "🍽️",
+        },
+        {
+            "name": "Health",
+            "slug": "health",
+            "description": "Health and wellness tips and information.",
+            "icon": "💪",
+        },
+        {
+            "name": "Education",
+            "slug": "education",
+            "description": "Learning resources and educational content.",
+            "icon": "📚",
+        },
     ]
 
-    # Use all available categories (max 8)
     categories_data = []
     category_ids = []
 
-    for name in category_names:
+    for category in categories:
         category_id = str(uuid.uuid4())
         category_ids.append(category_id)
-        slug = generate_slug(name)
         created_at = random_timestamp(200, 30)
 
-        categories_data.append((category_id, name, slug, created_at))
+        categories_data.append(
+            (
+                category_id,
+                category["name"],
+                category["slug"],
+                category["description"],
+                category["icon"],
+                created_at,
+            )
+        )
 
     count_inserted = bulk_insert(
-        cursor, "categories", ["id", "name", "slug", "created_at"], categories_data
+        cursor,
+        "categories",
+        ["id", "name", "slug", "description", "icon", "created_at"],
+        categories_data,
     )
 
     print(f"✓ Inserted {count_inserted} categories")
@@ -519,7 +569,7 @@ def main():
 
         # Seed data in order of dependencies
         user_ids = seed_users(cursor, count=20)
-        category_ids = seed_categories(cursor, count=8)
+        category_ids = seed_categories(cursor)
         post_ids = seed_posts(cursor, user_ids, count=100)
         seed_post_categories(cursor, post_ids, category_ids)
         comment_ids = seed_comments(cursor, post_ids, user_ids, count=300)

@@ -94,7 +94,6 @@ export interface CommentWithAuthor extends Comment {
 // For category display with UI metadata
 export interface CategoryDisplay extends Category {
   description: string;
-  color: string;
   icon: string;
 }
 

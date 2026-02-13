@@ -9,10 +9,12 @@ import (
 )
 
 type Category struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	Slug      string             `json:"slug"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID          pgtype.UUID        `json:"id"`
+	Name        string             `json:"name"`
+	Slug        string             `json:"slug"`
+	Description string             `json:"description"`
+	Icon        string             `json:"icon"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 type Comment struct {
