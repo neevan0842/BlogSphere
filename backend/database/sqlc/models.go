@@ -16,13 +16,12 @@ type Category struct {
 }
 
 type Comment struct {
-	ID              pgtype.UUID        `json:"id"`
-	PostID          pgtype.UUID        `json:"post_id"`
-	UserID          pgtype.UUID        `json:"user_id"`
-	ParentCommentID pgtype.UUID        `json:"parent_comment_id"`
-	Body            string             `json:"body"`
-	CreatedAt       pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	ID        pgtype.UUID        `json:"id"`
+	PostID    pgtype.UUID        `json:"post_id"`
+	UserID    pgtype.UUID        `json:"user_id"`
+	Body      string             `json:"body"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type CommentLike struct {

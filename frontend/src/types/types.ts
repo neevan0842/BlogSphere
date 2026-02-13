@@ -39,7 +39,6 @@ export interface Comment {
   id: string; // UUID
   post_id: string; // UUID reference to posts
   user_id: string; // UUID reference to users
-  parent_comment_id: string | null; // UUID reference to comments (for threading)
   body: string;
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ

@@ -12,31 +12,24 @@ import (
 )
 
 const createComment = `-- name: CreateComment :one
-INSERT INTO comments (post_id, user_id, parent_comment_id, body)
-VALUES ($1, $2, $3, $4)
-RETURNING id, post_id, user_id, parent_comment_id, body, created_at, updated_at
+INSERT INTO comments (post_id, user_id, body)
+VALUES ($1, $2, $3)
+RETURNING id, post_id, user_id, body, created_at, updated_at
 `
 
 type CreateCommentParams struct {
-	PostID          pgtype.UUID `json:"post_id"`
-	UserID          pgtype.UUID `json:"user_id"`
-	ParentCommentID pgtype.UUID `json:"parent_comment_id"`
-	Body            string      `json:"body"`
+	PostID pgtype.UUID `json:"post_id"`
+	UserID pgtype.UUID `json:"user_id"`
+	Body   string      `json:"body"`
 }
 
 func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (Comment, error) {
-	row := q.db.QueryRow(ctx, createComment,
-		arg.PostID,
-		arg.UserID,
-		arg.ParentCommentID,
-		arg.Body,
-	)
+	row := q.db.QueryRow(ctx, createComment, arg.PostID, arg.UserID, arg.Body)
 	var i Comment
 	err := row.Scan(
 		&i.ID,
 		&i.PostID,
 		&i.UserID,
-		&i.ParentCommentID,
 		&i.Body,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -54,7 +47,7 @@ func (q *Queries) DeleteComment(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getCommentByID = `-- name: GetCommentByID :one
-SELECT id, post_id, user_id, parent_comment_id, body, created_at, updated_at FROM comments WHERE id = $1
+SELECT id, post_id, user_id, body, created_at, updated_at FROM comments WHERE id = $1
 `
 
 func (q *Queries) GetCommentByID(ctx context.Context, id pgtype.UUID) (Comment, error) {
@@ -64,7 +57,6 @@ func (q *Queries) GetCommentByID(ctx context.Context, id pgtype.UUID) (Comment, 
 		&i.ID,
 		&i.PostID,
 		&i.UserID,
-		&i.ParentCommentID,
 		&i.Body,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -73,7 +65,7 @@ func (q *Queries) GetCommentByID(ctx context.Context, id pgtype.UUID) (Comment, 
 }
 
 const getCommentsByPostSlug = `-- name: GetCommentsByPostSlug :many
-SELECT c.id, c.post_id, c.user_id, c.parent_comment_id, c.body, c.created_at, c.updated_at
+SELECT c.id, c.post_id, c.user_id, c.body, c.created_at, c.updated_at
 FROM comments c
 JOIN posts p ON p.id = c.post_id
 WHERE p.slug = $1
@@ -93,7 +85,6 @@ func (q *Queries) GetCommentsByPostSlug(ctx context.Context, slug string) ([]Com
 			&i.ID,
 			&i.PostID,
 			&i.UserID,
-			&i.ParentCommentID,
 			&i.Body,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -112,7 +103,7 @@ const updateComment = `-- name: UpdateComment :one
 UPDATE comments
 SET body = $2, updated_at = now()
 WHERE id = $1
-RETURNING id, post_id, user_id, parent_comment_id, body, created_at, updated_at
+RETURNING id, post_id, user_id, body, created_at, updated_at
 `
 
 type UpdateCommentParams struct {
@@ -127,7 +118,6 @@ func (q *Queries) UpdateComment(ctx context.Context, arg UpdateCommentParams) (C
 		&i.ID,
 		&i.PostID,
 		&i.UserID,
-		&i.ParentCommentID,
 		&i.Body,
 		&i.CreatedAt,
 		&i.UpdatedAt,

@@ -41,12 +41,11 @@ type PostCardDTO struct {
 }
 
 type CommentDTO struct {
-	ID              string    `json:"id"`
-	PostID          string    `json:"post_id"`
-	UserID          string    `json:"user_id"`
-	ParentCommentID string    `json:"parent_comment_id"`
-	Body            string    `json:"body"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-	Author          AuthorDTO `json:"author"`
+	ID        string    `json:"id"`
+	PostID    string    `json:"post_id"`
+	UserID    string    `json:"user_id"`
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Author    AuthorDTO `json:"author"`
 }

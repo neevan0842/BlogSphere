@@ -222,13 +222,12 @@ func EnrichCommentsWithAuthors(ctx context.Context, repo *sqlc.Queries, comments
 		authorIDStr := comment.UserID.String()
 		author := authorMap[authorIDStr]
 		result[i] = CommentDTO{
-			ID:              comment.ID.String(),
-			PostID:          comment.PostID.String(),
-			UserID:          authorIDStr,
-			ParentCommentID: comment.ParentCommentID.String(),
-			Body:            comment.Body,
-			CreatedAt:       comment.CreatedAt.Time,
-			UpdatedAt:       comment.UpdatedAt.Time,
+			ID:        comment.ID.String(),
+			PostID:    comment.PostID.String(),
+			UserID:    authorIDStr,
+			Body:      comment.Body,
+			CreatedAt: comment.CreatedAt.Time,
+			UpdatedAt: comment.UpdatedAt.Time,
 			Author: AuthorDTO{
 				ID:        author.ID.String(),
 				GoogleID:  author.GoogleID,

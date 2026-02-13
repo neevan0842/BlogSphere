@@ -335,7 +335,7 @@ def seed_post_categories(cursor, post_ids: List[str], category_ids: List[str]) -
 def seed_comments(
     cursor, post_ids: List[str], user_ids: List[str], count: int = 300
 ) -> List[str]:
-    """Seed comments table with threaded comments and return list of comment IDs."""
+    """Seed comments table and return list of comment IDs."""
     print(f"\nSeeding {count} comments...")
 
     comment_templates = [
@@ -347,15 +347,17 @@ def seed_comments(
         "Well written! The section about {} was particularly useful.",
         "I disagree with the point about {}. In my experience...",
         "Excellent tutorial on {}! Bookmarked for future reference.",
+        "Thanks for the comment! I appreciate your feedback.",
+        "That's a great point. You're absolutely right.",
+        "I see what you mean. Let me clarify...",
+        "Good question! Here's my take on that...",
+        "Agreed! I had the same experience.",
     ]
 
     comments_data = []
     comment_ids = []
 
-    # First, create top-level comments (70% of total)
-    top_level_count = int(count * 0.7)
-
-    for i in range(top_level_count):
+    for i in range(count):
         comment_id = str(uuid.uuid4())
         comment_ids.append(comment_id)
 
@@ -369,92 +371,24 @@ def seed_comments(
         created_at = random_timestamp(90, 0)
 
         comments_data.append(
-            (comment_id, post_id, user_id, None, body, created_at, created_at)
+            (comment_id, post_id, user_id, body, created_at, created_at)
         )
 
-    # Insert top-level comments first
-    if comments_data:
-        bulk_insert(
-            cursor,
-            "comments",
-            [
-                "id",
-                "post_id",
-                "user_id",
-                "parent_comment_id",
-                "body",
-                "created_at",
-                "updated_at",
-            ],
-            comments_data,
-        )
-
-    # Now create threaded replies (30% of total)
-    reply_count = count - top_level_count
-    replies_data = []
-
-    for i in range(reply_count):
-        reply_id = str(uuid.uuid4())
-        comment_ids.append(reply_id)
-
-        parent_comment_id = random.choice(
-            comment_ids[: len(comment_ids) // 2]
-        )  # Reply to earlier comments
-
-        # Get the post_id from parent comment
-        cursor.execute(
-            "SELECT post_id FROM comments WHERE id = %s", (parent_comment_id,)
-        )
-        result = cursor.fetchone()
-        if not result:
-            continue
-
-        post_id = result[0]
-        user_id = random.choice(user_ids)
-        body = random.choice(
-            [
-                "Thanks for the comment! I appreciate your feedback.",
-                "That's a great point. You're absolutely right.",
-                "I see what you mean. Let me clarify...",
-                "Good question! Here's my take on that...",
-                "Agreed! I had the same experience.",
-            ]
-        )
-        created_at = random_timestamp(60, 0)
-
-        replies_data.append(
-            (
-                reply_id,
-                post_id,
-                user_id,
-                parent_comment_id,
-                body,
-                created_at,
-                created_at,
-            )
-        )
-
-    # Insert replies
-    if replies_data:
-        bulk_insert(
-            cursor,
-            "comments",
-            [
-                "id",
-                "post_id",
-                "user_id",
-                "parent_comment_id",
-                "body",
-                "created_at",
-                "updated_at",
-            ],
-            replies_data,
-        )
-
-    total_inserted = len(comments_data) + len(replies_data)
-    print(
-        f"✓ Inserted {total_inserted} comments ({len(comments_data)} top-level, {len(replies_data)} replies)"
+    count_inserted = bulk_insert(
+        cursor,
+        "comments",
+        [
+            "id",
+            "post_id",
+            "user_id",
+            "body",
+            "created_at",
+            "updated_at",
+        ],
+        comments_data,
     )
+
+    print(f"✓ Inserted {count_inserted} comments")
     return comment_ids
 
 

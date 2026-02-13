@@ -6,8 +6,8 @@ WHERE p.slug = $1
 ORDER BY c.created_at DESC;
 
 -- name: CreateComment :one
-INSERT INTO comments (post_id, user_id, parent_comment_id, body)
-VALUES ($1, $2, $3, $4)
+INSERT INTO comments (post_id, user_id, body)
+VALUES ($1, $2, $3)
 RETURNING *;
 
 -- name: UpdateComment :one
