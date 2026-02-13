@@ -159,22 +159,31 @@ func (q *Queries) GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.
 	return items, nil
 }
 
-const getPostBySearchPaginated = `-- name: GetPostBySearchPaginated :many
-SELECT p.id, p.author_id, p.title, p.slug, p.body, p.is_published, p.created_at, p.updated_at
+const getPostBySearchAndCategoryPaginated = `-- name: GetPostBySearchAndCategoryPaginated :many
+SELECT DISTINCT p.id, p.author_id, p.title, p.slug, p.body, p.is_published, p.created_at, p.updated_at
 FROM posts p
-WHERE p.title ILIKE '%' || COALESCE($1, '') || '%'
+LEFT JOIN post_categories pc ON pc.post_id = p.id
+LEFT JOIN categories c ON c.id = pc.category_id
+WHERE ($1::text IS NULL OR $1 = '' OR c.slug = $1)
+AND ($2::text IS NULL OR $2 = '' OR p.title ILIKE '%' || $2 || '%')
 ORDER BY p.created_at DESC
-LIMIT $2 OFFSET $3
+LIMIT $4 OFFSET $3
 `
 
-type GetPostBySearchPaginatedParams struct {
-	Column1 pgtype.Text `json:"column_1"`
-	Limit   int32       `json:"limit"`
-	Offset  int32       `json:"offset"`
+type GetPostBySearchAndCategoryPaginatedParams struct {
+	CategorySlug pgtype.Text `json:"category_slug"`
+	Search       pgtype.Text `json:"search"`
+	Offset       int32       `json:"offset"`
+	Limit        int32       `json:"limit"`
 }
 
-func (q *Queries) GetPostBySearchPaginated(ctx context.Context, arg GetPostBySearchPaginatedParams) ([]Post, error) {
-	rows, err := q.db.Query(ctx, getPostBySearchPaginated, arg.Column1, arg.Limit, arg.Offset)
+func (q *Queries) GetPostBySearchAndCategoryPaginated(ctx context.Context, arg GetPostBySearchAndCategoryPaginatedParams) ([]Post, error) {
+	rows, err := q.db.Query(ctx, getPostBySearchAndCategoryPaginated,
+		arg.CategorySlug,
+		arg.Search,
+		arg.Offset,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -31,6 +31,7 @@ func (h *handler) HandleGetPosts(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
 	searchStr := r.URL.Query().Get("search")
+	categoryStr := r.URL.Query().Get("category")
 
 	page, _ := strconv.Atoi(pageStr)
 	if page < 1 {
@@ -45,8 +46,8 @@ func (h *handler) HandleGetPosts(w http.ResponseWriter, r *http.Request) {
 	// Get requesting user ID (if authenticated)
 	requestingUserID := h.getRequestingUserID(w, r)
 
-	// Fetch posts with pagination and search
-	posts, err := h.service.getPostsPaginated(r.Context(), searchStr, limit, offset, requestingUserID)
+	// Fetch posts with pagination, search, and category filter
+	posts, err := h.service.getPostsPaginated(r.Context(), searchStr, categoryStr, limit, offset, requestingUserID)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to fetch posts: %s", err.Error()))
 		return

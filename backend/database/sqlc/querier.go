@@ -23,7 +23,7 @@ type Querier interface {
 	GetCommentCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCommentCountsByPostIDsRow, error)
 	GetCommentsByPostSlug(ctx context.Context, slug string) ([]Comment, error)
 	GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetLikeCountsByPostIDsRow, error)
-	GetPostBySearchPaginated(ctx context.Context, arg GetPostBySearchPaginatedParams) ([]Post, error)
+	GetPostBySearchAndCategoryPaginated(ctx context.Context, arg GetPostBySearchAndCategoryPaginatedParams) ([]Post, error)
 	GetPostBySlug(ctx context.Context, slug string) (Post, error)
 	GetPostLike(ctx context.Context, arg GetPostLikeParams) (PostLike, error)
 	GetPostsByUsername(ctx context.Context, username pgtype.Text) ([]Post, error)

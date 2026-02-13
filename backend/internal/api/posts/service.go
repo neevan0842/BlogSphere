@@ -24,12 +24,13 @@ func NewService(repo *sqlc.Queries, db *pgxpool.Pool) Service {
 	}
 }
 
-func (s *svc) getPostsPaginated(ctx context.Context, search string, limit, offset int, requestingUserID *pgtype.UUID) ([]common.PostCardDTO, error) {
+func (s *svc) getPostsPaginated(ctx context.Context, search string, categorySlug string, limit, offset int, requestingUserID *pgtype.UUID) ([]common.PostCardDTO, error) {
 	// Fetch posts based on search query with pagination
-	posts, err := s.repo.GetPostBySearchPaginated(ctx, sqlc.GetPostBySearchPaginatedParams{
-		Column1: pgtype.Text{String: search, Valid: true},
-		Limit:   int32(limit),
-		Offset:  int32(offset),
+	posts, err := s.repo.GetPostBySearchAndCategoryPaginated(ctx, sqlc.GetPostBySearchAndCategoryPaginatedParams{
+		CategorySlug: pgtype.Text{String: categorySlug, Valid: categorySlug != ""},
+		Search:       pgtype.Text{String: search, Valid: search != ""},
+		Limit:        int32(limit),
+		Offset:       int32(offset),
 	})
 	if err != nil {
 		return []common.PostCardDTO{}, fmt.Errorf("failed to fetch posts: %s", err.Error())

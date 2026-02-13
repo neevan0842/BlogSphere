@@ -52,12 +52,15 @@ FROM post_likes
 WHERE user_id = $1
 AND post_id = ANY($2::uuid[]);
 
--- name: GetPostBySearchPaginated :many
-SELECT p.*
+-- name: GetPostBySearchAndCategoryPaginated :many
+SELECT DISTINCT p.*
 FROM posts p
-WHERE p.title ILIKE '%' || COALESCE($1, '') || '%'
+LEFT JOIN post_categories pc ON pc.post_id = p.id
+LEFT JOIN categories c ON c.id = pc.category_id
+WHERE (sqlc.narg('category_slug')::text IS NULL OR sqlc.narg('category_slug') = '' OR c.slug = sqlc.narg('category_slug'))
+AND (sqlc.narg('search')::text IS NULL OR sqlc.narg('search') = '' OR p.title ILIKE '%' || sqlc.narg('search') || '%')
 ORDER BY p.created_at DESC
-LIMIT $2 OFFSET $3;
+LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
 
 -- name: GetPostBySlug :one
 SELECT * 

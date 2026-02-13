@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	getPostsPaginated(ctx context.Context, search string, limit, offset int, requestingUserID *pgtype.UUID) ([]common.PostCardDTO, error)
+	getPostsPaginated(ctx context.Context, search string, categorySlug string, limit, offset int, requestingUserID *pgtype.UUID) ([]common.PostCardDTO, error)
 	getUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error)
 	getPostBySlug(ctx context.Context, slug string, requestingUserID *pgtype.UUID) (common.PostCardDTO, error)
 	getCommentsByPostSlug(ctx context.Context, slug string) ([]common.CommentDTO, error)
