@@ -17,6 +17,7 @@ type Querier interface {
 	DeleteComment(ctx context.Context, id pgtype.UUID) error
 	DeletePostLike(ctx context.Context, arg DeletePostLikeParams) error
 	DeleteUserByID(ctx context.Context, id pgtype.UUID) error
+	GetCategories(ctx context.Context) ([]Category, error)
 	GetCategoriesByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCategoriesByPostIDsRow, error)
 	GetCommentByID(ctx context.Context, id pgtype.UUID) (Comment, error)
 	GetCommentCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetCommentCountsByPostIDsRow, error)

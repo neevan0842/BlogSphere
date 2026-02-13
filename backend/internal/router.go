@@ -11,6 +11,7 @@ import (
 	envs "github.com/neevan0842/BlogSphere/backend/config"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/auth"
+	"github.com/neevan0842/BlogSphere/backend/internal/api/categories"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/comments"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/posts"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/users"
@@ -93,6 +94,9 @@ func (app *application) Mount() http.Handler {
 	commentService := comments.NewService(repo, app.db)
 	commentHandler := comments.NewHandler(commentService, app.logger, repo)
 
+	categoryService := categories.NewService(repo, app.db)
+	categoryHandler := categories.NewHandler(categoryService, app.logger, repo)
+
 	// Initialize middleware
 	authMiddleware := mw.NewMiddleware(repo, app.logger)
 
@@ -140,6 +144,11 @@ func (app *application) Mount() http.Handler {
 			r.Post("/", commentHandler.HandleCreateComment)
 			r.Delete("/{commentID}", commentHandler.HandleDeleteComment)
 			r.Patch("/{commentID}", commentHandler.HandleUpdateComment)
+		})
+
+		// category routes
+		r.Route("/categories", func(r chi.Router) {
+			r.Get("/", categoryHandler.HandleGetCategories)
 		})
 	})
 
