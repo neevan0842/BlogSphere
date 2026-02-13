@@ -8,12 +8,13 @@ import { api } from "./api";
 
 export const getPostsPaginated = async (
   search: string,
+  categorySlug: string,
   page: number,
   limit: number,
 ): Promise<PaginatedPostsResponse> => {
   try {
     const response = await api.get("/posts", {
-      params: { search, page, limit },
+      params: { search, category: categorySlug, page, limit },
     });
     return response.data as PaginatedPostsResponse;
   } catch (error) {
