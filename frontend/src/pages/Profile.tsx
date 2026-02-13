@@ -231,17 +231,7 @@ const Profile = () => {
                 <div className="grid gap-6 md:grid-cols-2">
                   {userPosts.map((post) => (
                     <div key={post.id} className="relative">
-                      <BlogPostCard
-                        title={post.title}
-                        body={post.body}
-                        author={post.author}
-                        created_at={post.created_at}
-                        categories={post.categories}
-                        slug={post.slug}
-                        like_count={post.like_count}
-                        comment_count={post.comment_count}
-                        user_has_liked={post.user_has_liked}
-                      />
+                      <BlogPostCard post={post} />
                       {isOwner && (
                         <div className="absolute top-4 right-4 flex gap-2">
                           <Link
@@ -279,18 +269,7 @@ const Profile = () => {
               {likedPosts.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2">
                   {likedPosts.map((post) => (
-                    <BlogPostCard
-                      key={post.id}
-                      title={post.title}
-                      body={post.body}
-                      author={post.author}
-                      created_at={post.created_at}
-                      categories={post.categories}
-                      slug={post.slug}
-                      like_count={post.like_count}
-                      comment_count={post.comment_count}
-                      user_has_liked={post.user_has_liked}
-                    />
+                    <BlogPostCard key={post.id} post={post} />
                   ))}
                 </div>
               ) : (

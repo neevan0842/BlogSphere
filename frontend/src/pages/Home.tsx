@@ -116,18 +116,7 @@ const Home = () => {
           >
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (
-                <BlogPostCard
-                  key={post.id}
-                  title={post.title}
-                  body={post.body}
-                  author={post.author}
-                  created_at={post.created_at}
-                  categories={post.categories}
-                  slug={post.slug}
-                  like_count={post.like_count}
-                  comment_count={post.comment_count}
-                  user_has_liked={post.user_has_liked}
-                />
+                <BlogPostCard key={post.id} post={post} />
               ))}
             </div>
           </InfiniteScroll>
