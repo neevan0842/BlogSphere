@@ -62,7 +62,7 @@ const Categories = () => {
             <p className="mt-4 text-muted-foreground">Loading categories...</p>
           </div>
         ) : !!slug ? (
-          <SearchDisplayPost categorySlug={slug} />
+          <SearchDisplayPost categorySlug={slug} showBackButton={true} />
         ) : categories.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
