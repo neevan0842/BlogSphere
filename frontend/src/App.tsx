@@ -27,6 +27,7 @@ const App = () => {
         <Route index element={<Home />} />
         <Route path="/signin" element={<Signin />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/categories/:slug" element={<Categories />} />
         <Route path="/post/:slug" element={<Post />} />
         <Route path="/u/:username" element={<Profile />} />
 

@@ -3,9 +3,13 @@ import { useEffect, useState } from "react";
 import type { CategoryDisplay } from "../types/types";
 import { getCategories } from "../api/categoryApi";
 import toast from "react-hot-toast";
-import { Link } from "react-router";
+import SearchDisplayPost from "../components/SearchDisplayPost";
+import { capitalize } from "../utils/utils";
+import { Link, useNavigate, useParams } from "react-router";
 
 const Categories = () => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<CategoryDisplay[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +28,16 @@ const Categories = () => {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    if (!loading && categories.length > 0 && slug) {
+      const categoryExists = categories.some((cat) => cat.slug === slug);
+      if (!categoryExists) {
+        toast.error("Category not found.");
+        navigate("/categories");
+      }
+    }
+  }, [slug, categories, navigate, loading]);
+
   return (
     <PageLayout>
       {/* Hero Section */}
@@ -31,7 +45,7 @@ const Categories = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-balance text-foreground mb-4">
-              Explore by Category
+              {!slug ? "Explore by Category" : `${capitalize(slug)} Articles`}
             </h1>
             <p className="text-lg text-muted-foreground text-balance">
               Browse articles by topic and discover content that interests you.
@@ -47,6 +61,8 @@ const Categories = () => {
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent"></div>
             <p className="mt-4 text-muted-foreground">Loading categories...</p>
           </div>
+        ) : !!slug ? (
+          <SearchDisplayPost categorySlug={slug} />
         ) : categories.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (

@@ -75,6 +75,14 @@ const Post = () => {
     );
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/"); // Fallback
+    }
+  };
+
   useEffect(() => {
     const fetchPost = async () => {
       const [postData, commentsData] = await Promise.all([
@@ -112,13 +120,13 @@ const Post = () => {
     <PageLayout>
       <article className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
         {/* Back Link */}
-        <Link
-          to="/"
+        <button
+          onClick={handleBack}
           className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to articles
-        </Link>
+        </button>
 
         {/* Article Header */}
         <header className="mb-8 space-y-4">
