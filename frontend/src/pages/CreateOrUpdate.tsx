@@ -1,16 +1,21 @@
 import { ArrowLeft, Bold, Heading2, Italic, List, Save } from "lucide-react";
 import PageLayout from "../components/PageLayout";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import useUserStore from "../store/userStore";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getCategories } from "../api/categoryApi";
 import type { CategoryDisplay } from "../types/types";
 import { z } from "zod";
-import { createPost } from "../api/postApi";
+import { createPost, getPostByID, updatePostByID } from "../api/postApi";
 import MarkdownRenderer from "../components/MarkdownRenderer";
 
-const Create = () => {
+interface CreateOrUpdateProps {
+  isUpdatePage: boolean;
+}
+
+const CreateOrUpdate = ({ isUpdatePage = false }: CreateOrUpdateProps) => {
+  const { postId } = useParams(); // postId is used only for update page
   const navigate = useNavigate();
   const { isAuthenticated } = useUserStore();
   const [title, setTitle] = useState("");
@@ -45,7 +50,7 @@ const Create = () => {
     });
   };
 
-  const handlePublish = async () => {
+  const handlePublishOrUpdate = async () => {
     const validation = postSchema.safeParse({
       title: title.trim(),
       body: body.trim(),
@@ -57,17 +62,29 @@ const Create = () => {
     }
 
     setIsSaving(true);
-    const response = await createPost({
-      title: title.trim(),
-      body: body.trim(),
-      categoryIDs: selectedCategories,
-    });
+    let response = null;
+    if (isUpdatePage) {
+      // Update existing post
+      response = await updatePostByID({
+        postID: postId || "",
+        title: title.trim(),
+        body: body.trim(),
+        categoryIDs: selectedCategories,
+      });
+    } else {
+      // Create new post
+      response = await createPost({
+        title: title.trim(),
+        body: body.trim(),
+        categoryIDs: selectedCategories,
+      });
+    }
     if (!response) {
-      toast.error("Failed to create post. Please try again.");
+      toast.error(`Failed to ${isUpdatePage ? "update" : "create"} post.`);
       setIsSaving(false);
       return;
     }
-    toast.success("Post created successfully!");
+    toast.success(`Post ${isUpdatePage ? "updated" : "created"} successfully!`);
     navigate(`/post/${response.slug}`);
     setIsSaving(false);
   };
@@ -93,6 +110,13 @@ const Create = () => {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error("You must be signed in to create a post.");
+      navigate("/signin");
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
     const fetchCategories = async () => {
       const data = await getCategories();
       if (!data) {
@@ -105,11 +129,24 @@ const Create = () => {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("You must be signed in to create a post.");
-      navigate("/signin");
-    }
-  }, [isAuthenticated, navigate]);
+    const fetchPostDetails = async () => {
+      if (!isUpdatePage) {
+        return;
+      }
+
+      // For update page, we will fetch the post details and populate the form
+      const post = await getPostByID(postId || "");
+      if (!post) {
+        toast.error("Failed to load post details");
+        navigate("/");
+        return;
+      }
+      setTitle(post.title);
+      setBody(post.body);
+      setSelectedCategories(post.categories.map((c) => c.id));
+    };
+    fetchPostDetails();
+  }, [isUpdatePage, postId, navigate]);
 
   return (
     <PageLayout>
@@ -123,7 +160,9 @@ const Create = () => {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Link>
-          <h1 className="text-2xl md:text-3xl font-bold">Create New Post</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">
+            {isUpdatePage ? "Update Post" : "Create New Post"}
+          </h1>
           <div className="w-20" />
         </div>
 
@@ -131,7 +170,7 @@ const Create = () => {
           className="space-y-8"
           onSubmit={(e) => {
             e.preventDefault();
-            handlePublish();
+            handlePublishOrUpdate();
           }}
         >
           {/* Title */}
@@ -271,7 +310,7 @@ const Create = () => {
               className="px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              {isSaving ? "Publishing..." : "Publish Post"}
+              {isUpdatePage ? "Update Post" : "Publish Post"}
             </button>
           </div>
         </form>
@@ -280,4 +319,4 @@ const Create = () => {
   );
 };
 
-export default Create;
+export default CreateOrUpdate;

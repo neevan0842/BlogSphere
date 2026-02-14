@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Signin from "./pages/Signin";
-import Create from "./pages/Create";
+import CreateOrUpdate from "./pages/CreateOrUpdate";
 import GoogleCallback from "./components/GoogleCallback";
 import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
@@ -48,7 +48,14 @@ const App = () => {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/create" element={<Create />} />
+          <Route
+            path="/create"
+            element={<CreateOrUpdate isUpdatePage={false} />}
+          />
+          <Route
+            path="/post/:postId/edit"
+            element={<CreateOrUpdate isUpdatePage={true} />}
+          />
         </Route>
 
         {/* Google OAuth callback route */}

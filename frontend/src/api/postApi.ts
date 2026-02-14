@@ -39,6 +39,18 @@ export const getPostBySlug = async (slug: string): Promise<PostType | null> => {
   }
 };
 
+export const getPostByID = async (postID: string): Promise<PostType | null> => {
+  try {
+    if (!postID.trim()) {
+      return null;
+    }
+    const response = await api.get(`/posts/id/${postID.trim()}`);
+    return response.data as PostType;
+  } catch (error) {
+    return null;
+  }
+};
+
 export const getCommentsByPostSlug = async (
   slug: string,
 ): Promise<CommentWithAuthor[] | null> => {
@@ -111,6 +123,9 @@ export const updatePostByID = async ({
       body: body.trim(),
       category_ids: categoryIDs,
     });
+    if (response.status !== 200) {
+      return null;
+    }
     return response.data as PostType;
   } catch (error) {
     return null;
