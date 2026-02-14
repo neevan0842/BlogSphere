@@ -11,7 +11,7 @@ import (
 type Service interface {
 	generateStateOauthCookie(w http.ResponseWriter) string
 	getUserDataFromGoogle(code string) (sqlc.CreateUserParams, error)
-	createUserIfNotExists(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error)
+	createUserIfNotExists(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, bool, error)
 	GetUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error)
 }
 

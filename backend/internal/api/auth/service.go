@@ -68,19 +68,19 @@ func (s *svc) getUserDataFromGoogle(code string) (sqlc.CreateUserParams, error) 
 	return CreateUserParams, nil
 }
 
-func (s *svc) createUserIfNotExists(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error) {
+func (s *svc) createUserIfNotExists(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, bool, error) {
 	// Check if user already exists
 	existingUser, err := s.repo.GetUserByGoogleID(ctx, arg.GoogleID)
 	if err == nil {
-		return existingUser, nil
+		return existingUser, false, nil // user already exists
 	}
 
 	// Create new user
 	user, err := s.repo.CreateUser(ctx, arg)
 	if err != nil {
-		return sqlc.User{}, fmt.Errorf("failed to create user: %s", err.Error())
+		return sqlc.User{}, false, fmt.Errorf("failed to create user: %s", err.Error())
 	}
-	return user, nil
+	return user, true, nil // new user created
 }
 
 func (s *svc) GetUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error) {

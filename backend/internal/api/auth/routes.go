@@ -64,7 +64,7 @@ func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	user, err := h.service.createUserIfNotExists(r.Context(), userData)
+	user, isNewUser, err := h.service.createUserIfNotExists(r.Context(), userData)
 	if err != nil {
 		h.logger.Error(err.Error())
 		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("could not authenticate with google"))
@@ -81,6 +81,11 @@ func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 
 	// Clear the oauthstate cookie
 	utils.SetCookie(w, "oauthstate", "", -1)
+
+	// send welcome email
+	if isNewUser && user.Username.Valid && user.Email != "" {
+		go utils.SendWelcomeEmail(user.Email, user.Username.String, h.logger)
+	}
 
 	utils.WriteJSON(w, http.StatusOK, map[string]string{
 		"access_token":  accessToken,

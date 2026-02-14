@@ -10,12 +10,16 @@ require (
 	github.com/gosimple/slug v1.15.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/joho/godotenv v1.5.1
+	github.com/mailersend/mailersend-go v1.6.2
 	go.uber.org/zap v1.27.1
 	golang.org/x/oauth2 v0.34.0
 	golang.org/x/sync v0.19.0
 )
 
-require github.com/gosimple/unidecode v1.0.1 // indirect
+require (
+	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
+)
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect

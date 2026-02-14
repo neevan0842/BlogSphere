@@ -150,11 +150,21 @@ func (h *handler) HandleDeleteCurrentUser(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// get user details for email
+	user, err := h.repo.GetUserByID(r.Context(), userIDUUID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to fetch user details: %s", err.Error()))
+		return
+	}
+
 	// Delete user from the database
 	if err := h.service.deleteUserByID(r.Context(), userIDUUID); err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to delete user: %s", err.Error()))
 		return
 	}
+
+	// send account deletion email
+	go utils.SendAccountDeletionEmail(user.Email, user.Username.String, h.logger)
 
 	// Return 204 No Content without response body
 	w.WriteHeader(http.StatusNoContent)

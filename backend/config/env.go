@@ -39,6 +39,10 @@ type Config struct {
 
 	// CORS Configuration
 	CORS_ALLOWED_ORIGIN string
+
+	// MailerSend Configuration
+	MAILERSEND_API_KEY string
+	FROM_EMAIL         string
 }
 
 var Envs = initConfig()
@@ -78,6 +82,10 @@ func initConfig() Config {
 
 		// CORS Configuration
 		CORS_ALLOWED_ORIGIN: getEnv("CORS_ALLOWED_ORIGIN", "http://localhost:5173"),
+
+		// MailerSend Configuration
+		MAILERSEND_API_KEY: getEnv("MAILERSEND_API_KEY", ""),
+		FROM_EMAIL:         getEnv("FROM_EMAIL", ""),
 	}
 }
 
