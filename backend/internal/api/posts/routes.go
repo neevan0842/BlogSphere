@@ -171,3 +171,16 @@ func (h *handler) HandleUpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, newPost)
 }
+
+func (h *handler) HandleGetPostByID(w http.ResponseWriter, r *http.Request) {
+	postID := chi.URLParam(r, "postID")
+	requestingUserID := h.getRequestingUserID(w, r)
+
+	post, err := h.service.getPostByID(r.Context(), postID, requestingUserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusNotFound, fmt.Errorf("failed to fetch post: %s", err.Error()))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, post)
+}

@@ -67,6 +67,29 @@ func (s *svc) getPostBySlug(ctx context.Context, slug string, requestingUserID *
 	return posts[0], nil
 }
 
+func (s *svc) getPostByID(ctx context.Context, postID string, requestingUserID *pgtype.UUID) (common.PostCardDTO, error) {
+	postIDUUID, err := utils.StrToUUID(postID)
+	if err != nil {
+		return common.PostCardDTO{}, fmt.Errorf("invalid post ID: %s", err.Error())
+	}
+
+	post, err := s.repo.GetPostByID(ctx, postIDUUID)
+	if err != nil {
+		return common.PostCardDTO{}, fmt.Errorf("failed to get post by ID: %s", err.Error())
+	}
+
+	posts, err := common.EnrichPostsWithDetails(ctx, s.repo, []sqlc.Post{post}, requestingUserID)
+	if err != nil {
+		return common.PostCardDTO{}, fmt.Errorf("failed to enrich post details: %s", err.Error())
+	}
+
+	if len(posts) == 0 {
+		return common.PostCardDTO{}, fmt.Errorf("post not found")
+	}
+
+	return posts[0], nil
+}
+
 func (s *svc) getCommentsByPostSlug(ctx context.Context, slug string) ([]common.CommentDTO, error) {
 	comments, err := s.repo.GetCommentsByPostSlug(ctx, slug)
 	if err != nil {

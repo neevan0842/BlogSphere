@@ -12,6 +12,7 @@ type Service interface {
 	getPostsPaginated(ctx context.Context, search string, categorySlug string, limit, offset int, requestingUserID *pgtype.UUID) ([]common.PostCardDTO, error)
 	getUserByID(ctx context.Context, userID pgtype.UUID) (sqlc.User, error)
 	getPostBySlug(ctx context.Context, slug string, requestingUserID *pgtype.UUID) (common.PostCardDTO, error)
+	getPostByID(ctx context.Context, postID string, requestingUserID *pgtype.UUID) (common.PostCardDTO, error)
 	getCommentsByPostSlug(ctx context.Context, slug string) ([]common.CommentDTO, error)
 	togglePostLike(ctx context.Context, postID pgtype.UUID, userID pgtype.UUID) (bool, error)
 	CreatePost(ctx context.Context, title string, body string, authorID string, categoryIDs []string) (common.PostCardDTO, error)
