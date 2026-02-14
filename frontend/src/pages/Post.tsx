@@ -84,6 +84,16 @@ const Post = () => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard!");
+    } catch (error) {
+      toast.error("Failed to copy link");
+    }
+  };
+
   useEffect(() => {
     const fetchPost = async () => {
       const [postData, commentsData] = await Promise.all([
@@ -196,7 +206,10 @@ const Post = () => {
             <span className="font-medium">{comments.length}</span>
           </div>
 
-          <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+          >
             <Share2 className="h-5 w-5" />
             <span className="font-medium">Share</span>
           </button>
