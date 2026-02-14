@@ -120,7 +120,7 @@ const CreateOrUpdate = ({ isUpdatePage = false }: CreateOrUpdateProps) => {
     const fetchCategories = async () => {
       const data = await getCategories();
       if (!data) {
-        toast.error("Failed to load categories. Please try again later.");
+        toast.error("Failed to load categories.");
         return;
       }
       setCategories(data);

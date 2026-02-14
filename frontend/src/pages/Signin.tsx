@@ -14,7 +14,7 @@ const Login = () => {
     if (url !== "") {
       window.location.href = url;
     } else {
-      toast.error("Failed to get Google authentication URL. Please try again.");
+      toast.error("Failed to get Google authentication URL.");
     }
   };
 

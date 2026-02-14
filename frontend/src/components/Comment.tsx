@@ -30,7 +30,7 @@ const Comment = ({
       body: editedContent,
     });
     if (!data) {
-      toast.error("Failed to update comment. Please try again.");
+      toast.error("Failed to update comment.");
       return;
     }
     onUpdateComment(data.id, data.body);
@@ -41,7 +41,7 @@ const Comment = ({
   const handleDeleteComment = async () => {
     const result = await deleteCommentByID({ commentId: id });
     if (!result) {
-      toast.error("Failed to delete comment. Please try again.");
+      toast.error("Failed to delete comment.");
       return;
     }
     onDeleteComment(id);

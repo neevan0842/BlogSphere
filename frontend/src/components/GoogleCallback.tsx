@@ -19,7 +19,7 @@ const GoogleCallback = () => {
       const state = searchParams.get("state");
 
       if (!code || !state) {
-        toast.error("Google authentication failed. Please try again.");
+        toast.error("Google authentication failed.");
         navigate("/signin");
         return;
       }
@@ -29,7 +29,7 @@ const GoogleCallback = () => {
         toast.success("Signed in with Google successfully!");
         navigate("/");
       } else {
-        toast.error("Failed to sign in with Google. Please try again.");
+        toast.error("Failed to sign in with Google.");
         navigate("/signin");
       }
     };

@@ -48,7 +48,7 @@ const Profile = () => {
       navigate("/");
       logout();
     } else {
-      toast.error("Failed to delete account. Please try again later.");
+      toast.error("Failed to delete account.");
     }
   };
 
@@ -67,7 +67,7 @@ const Profile = () => {
         prevPosts.filter((post) => post.id !== postID),
       );
     } else {
-      toast.error("Failed to delete post. Please try again later.");
+      toast.error("Failed to delete post.");
     }
   };
 

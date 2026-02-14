@@ -34,7 +34,7 @@ const BlogPostCard = ({ post }: { post: PostType }) => {
     }
     const result = await togglePostLikeByPostID(id);
     if (!result) {
-      toast.error("Failed to toggle like. Please try again.");
+      toast.error("Failed to toggle like.");
       return;
     }
     setIsLiked(result.liked);
@@ -74,7 +74,10 @@ const BlogPostCard = ({ post }: { post: PostType }) => {
         </Link>
 
         {/* Author & Date */}
-        <Link to={`/u/${author.username || "unknown"}`} className="group/link block mb-4">
+        <Link
+          to={`/u/${author.username || "unknown"}`}
+          className="group/link block mb-4"
+        >
           <div className="flex items-center gap-3">
             <img
               src={author.avatar_url || "/placeholder.svg"}

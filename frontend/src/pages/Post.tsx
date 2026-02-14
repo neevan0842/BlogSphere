@@ -34,7 +34,7 @@ const Post = () => {
     }
     const result = await togglePostLikeByPostID(post?.id || "");
     if (!result) {
-      toast.error("Failed to toggle like. Please try again.");
+      toast.error("Failed to toggle like.");
       return;
     }
     setIsLiked(result.liked);
@@ -55,7 +55,7 @@ const Post = () => {
     });
 
     if (!addedComment) {
-      toast.error("Failed to add comment. Please try again.");
+      toast.error("Failed to add comment.");
       return;
     }
     setComments((prevComments) => [addedComment, ...prevComments]);
