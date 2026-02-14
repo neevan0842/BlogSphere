@@ -15,6 +15,7 @@ import BlogPostCard from "../components/BlogPostCard";
 import useUserStore from "../store/userStore";
 import toast from "react-hot-toast";
 import { deletePostByID } from "../api/postApi";
+import ConfirmModal from "../components/ConfirmModal";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<"posts" | "liked">("posts");
   const [isEditing, setIsEditing] = useState(false);
   const [editDescription, setEditDescription] = useState("");
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [showDeletePostModal, setShowDeletePostModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -34,41 +38,47 @@ const Profile = () => {
     toast.success("Logged out successfully.");
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccountClick = () => {
     if (!isOwner) {
       toast.error("You do not have permission to delete this account.");
       return;
     }
-    if (!confirm("Are you sure you want to delete your account?")) {
-      return;
-    }
+    setShowDeleteAccountModal(true);
+  };
+
+  const handleDeleteAccountConfirm = async () => {
     const result = await deleteUserAccount(user?.id || "");
     if (result) {
-      toast.success("Account deleted successfully.");
-      navigate("/");
       logout();
+      navigate("/", { replace: true });
+      toast.success("Account deleted successfully.");
     } else {
       toast.error("Failed to delete account.");
     }
   };
 
-  const handlePostDelete = async (postID: string) => {
+  const handlePostDeleteClick = (postID: string) => {
     if (!isOwner) {
       toast.error("You do not have permission to delete this post.");
       return;
     }
-    if (!confirm("Are you sure you want to delete this post?")) {
-      return;
-    }
-    const result = await deletePostByID(postID);
+    setPostToDelete(postID);
+    setShowDeletePostModal(true);
+  };
+
+  const handlePostDeleteConfirm = async () => {
+    if (!postToDelete) return;
+
+    const result = await deletePostByID(postToDelete);
     if (result) {
       toast.success("Post deleted successfully.");
       setUserPosts((prevPosts) =>
-        prevPosts.filter((post) => post.id !== postID),
+        prevPosts.filter((post) => post.id !== postToDelete),
       );
     } else {
       toast.error("Failed to delete post.");
     }
+    setPostToDelete(null);
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -114,7 +124,7 @@ const Profile = () => {
     return () => {
       isMounted = false;
     };
-  }, [username, navigate, isAuthenticated, authenticatedUser]);
+  }, [username]);
 
   // Fetch user details on component mount
   if (!user) {
@@ -262,7 +272,7 @@ const Profile = () => {
                             <Edit2 className="h-4 w-4" />
                           </Link>
                           <button
-                            onClick={() => handlePostDelete(post.id)}
+                            onClick={() => handlePostDeleteClick(post.id)}
                             className="p-2 rounded-lg bg-background/80 text-destructive hover:bg-background transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -322,7 +332,7 @@ const Profile = () => {
                 certain.
               </p>
               <button
-                onClick={handleDeleteAccount}
+                onClick={handleDeleteAccountClick}
                 className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors font-medium"
               >
                 Delete Account
@@ -331,6 +341,33 @@ const Profile = () => {
           </div>
         </section>
       )}
+
+      {/* Delete Account Modal */}
+      <ConfirmModal
+        isOpen={showDeleteAccountModal}
+        onClose={() => setShowDeleteAccountModal(false)}
+        onConfirm={handleDeleteAccountConfirm}
+        title="Delete Account"
+        message="Are you sure you want to delete your account? This action cannot be undone and all your posts will be permanently deleted."
+        confirmText="Delete Account"
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      {/* Delete Post Modal */}
+      <ConfirmModal
+        isOpen={showDeletePostModal}
+        onClose={() => {
+          setShowDeletePostModal(false);
+          setPostToDelete(null);
+        }}
+        onConfirm={handlePostDeleteConfirm}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        confirmText="Delete Post"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </PageLayout>
   );
 };
