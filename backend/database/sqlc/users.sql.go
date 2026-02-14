@@ -117,6 +117,41 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username pgtype.Text) (
 	return i, err
 }
 
+const getUsersByIDs = `-- name: GetUsersByIDs :many
+SELECT id, google_id, username, email, description, avatar_url, created_at, updated_at
+FROM users
+WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetUsersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]User, error) {
+	rows, err := q.db.Query(ctx, getUsersByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.GoogleID,
+			&i.Username,
+			&i.Email,
+			&i.Description,
+			&i.AvatarUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET description = $2, updated_at = now()

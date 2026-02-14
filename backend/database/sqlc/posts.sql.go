@@ -66,6 +66,16 @@ func (q *Queries) CreatePostLike(ctx context.Context, arg CreatePostLikeParams) 
 	return i, err
 }
 
+const deletePost = `-- name: DeletePost :exec
+DELETE FROM posts
+WHERE id = $1
+`
+
+func (q *Queries) DeletePost(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deletePost, id)
+	return err
+}
+
 const deletePostLike = `-- name: DeletePostLike :exec
 DELETE FROM post_likes
 WHERE post_id = $1 AND user_id = $2
@@ -193,6 +203,28 @@ func (q *Queries) GetLikeCountsByPostIDs(ctx context.Context, dollar_1 []pgtype.
 		return nil, err
 	}
 	return items, nil
+}
+
+const getPostByID = `-- name: GetPostByID :one
+SELECT id, author_id, title, slug, body, is_published, created_at, updated_at
+FROM posts
+WHERE id = $1
+`
+
+func (q *Queries) GetPostByID(ctx context.Context, id pgtype.UUID) (Post, error) {
+	row := q.db.QueryRow(ctx, getPostByID, id)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Title,
+		&i.Slug,
+		&i.Body,
+		&i.IsPublished,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getPostBySearchAndCategoryPaginated = `-- name: GetPostBySearchAndCategoryPaginated :many
@@ -394,37 +426,39 @@ func (q *Queries) GetUserLikedPostIDs(ctx context.Context, arg GetUserLikedPostI
 	return items, nil
 }
 
-const getUsersByIDs = `-- name: GetUsersByIDs :many
-SELECT id, google_id, username, email, description, avatar_url, created_at, updated_at
-FROM users
-WHERE id = ANY($1::uuid[])
+const updatePost = `-- name: UpdatePost :one
+UPDATE posts
+SET title = $2, body = $3, slug = $4, is_published = $5, updated_at = NOW()
+WHERE id = $1
+RETURNING id, author_id, title, slug, body, is_published, created_at, updated_at
 `
 
-func (q *Queries) GetUsersByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]User, error) {
-	rows, err := q.db.Query(ctx, getUsersByIDs, dollar_1)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []User
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.ID,
-			&i.GoogleID,
-			&i.Username,
-			&i.Email,
-			&i.Description,
-			&i.AvatarUrl,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+type UpdatePostParams struct {
+	ID          pgtype.UUID `json:"id"`
+	Title       string      `json:"title"`
+	Body        string      `json:"body"`
+	Slug        string      `json:"slug"`
+	IsPublished bool        `json:"is_published"`
+}
+
+func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error) {
+	row := q.db.QueryRow(ctx, updatePost,
+		arg.ID,
+		arg.Title,
+		arg.Body,
+		arg.Slug,
+		arg.IsPublished,
+	)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Title,
+		&i.Slug,
+		&i.Body,
+		&i.IsPublished,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

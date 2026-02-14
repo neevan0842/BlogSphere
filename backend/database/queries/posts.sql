@@ -13,11 +13,6 @@ JOIN posts p ON p.id = pl.post_id
 WHERE u.username = $1
 ORDER BY p.created_at DESC;
 
--- name: GetUsersByIDs :many
-SELECT *
-FROM users
-WHERE id = ANY($1::uuid[]);
-
 -- name: GetCategoriesByPostIDs :many
 SELECT
     pc.post_id,
@@ -45,7 +40,6 @@ FROM comments
 WHERE post_id = ANY($1::uuid[])
 GROUP BY post_id;
 
-
 -- name: GetUserLikedPostIDs :many
 SELECT post_id
 FROM post_likes
@@ -67,6 +61,11 @@ SELECT *
 FROM posts 
 WHERE slug = $1;
 
+-- name: GetPostByID :one
+SELECT *
+FROM posts
+WHERE id = $1;
+
 -- name: CreatePostLike :one
 INSERT INTO post_likes (post_id, user_id)
 VALUES ($1, $2)
@@ -86,3 +85,13 @@ WHERE post_id = $1 AND user_id = $2;
 INSERT INTO posts (title, body, slug, author_id, is_published)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+
+-- name: UpdatePost :one
+UPDATE posts
+SET title = $2, body = $3, slug = $4, is_published = $5, updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: DeletePost :exec
+DELETE FROM posts
+WHERE id = $1;
