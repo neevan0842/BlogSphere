@@ -132,3 +132,17 @@ func (h *handler) HandleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusCreated, post)
 }
+
+func (h *handler) HandleDeletePost(w http.ResponseWriter, r *http.Request) {
+	postID := chi.URLParam(r, "postID")
+	userID, _ := utils.GetUserIDFromContext(r.Context())
+
+	err := h.service.DeletePost(r.Context(), postID, userID)
+
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to delete post: %s", err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

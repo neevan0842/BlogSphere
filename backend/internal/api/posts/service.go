@@ -163,3 +163,29 @@ func (s *svc) CreatePost(ctx context.Context, title string, body string, authorI
 	}
 	return posts[0], nil
 }
+
+func (s *svc) DeletePost(ctx context.Context, postID string, userID string) error {
+	postIDUUID, err := utils.StrToUUID(postID)
+	if err != nil {
+		return fmt.Errorf("invalid post ID: %s", err.Error())
+	}
+
+	// Fetch the post to verify ownership
+	post, err := s.repo.GetPostByID(ctx, postIDUUID)
+	if err != nil {
+		return fmt.Errorf("no post found with the given ID: %s", err.Error())
+	}
+
+	// Check if the requesting user is the author of the post
+	if post.AuthorID.String() != userID {
+		return fmt.Errorf("unauthorized: user does not own the post")
+	}
+
+	// Delete the post
+	err = s.repo.DeletePost(ctx, postIDUUID)
+	if err != nil {
+		return fmt.Errorf("failed to delete post: %s", err.Error())
+	}
+
+	return nil
+}

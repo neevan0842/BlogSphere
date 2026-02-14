@@ -15,6 +15,7 @@ type Service interface {
 	getCommentsByPostSlug(ctx context.Context, slug string) ([]common.CommentDTO, error)
 	togglePostLike(ctx context.Context, postID pgtype.UUID, userID pgtype.UUID) (bool, error)
 	CreatePost(ctx context.Context, title string, body string, authorID string, categoryIDs []string) (common.PostCardDTO, error)
+	DeletePost(ctx context.Context, postID string, userID string) error
 }
 
 type PaginatedResponse struct {
