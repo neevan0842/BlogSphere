@@ -90,3 +90,41 @@ export const createPost = async ({
     return null;
   }
 };
+
+export const updatePostByID = async ({
+  postID,
+  title = "",
+  body = "",
+  categoryIDs = [],
+}: {
+  postID: string;
+  title: string;
+  body: string;
+  categoryIDs: string[];
+}): Promise<PostType | null> => {
+  try {
+    if (!postID.trim()) {
+      return null;
+    }
+    const response = await api.put(`/posts/${postID.trim()}`, {
+      title: title.trim(),
+      body: body.trim(),
+      category_ids: categoryIDs,
+    });
+    return response.data as PostType;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const deletePostByID = async (postID: string): Promise<boolean> => {
+  try {
+    if (!postID.trim()) {
+      return false;
+    }
+    const response = await api.delete(`/posts/${postID.trim()}`);
+    return response.status === 204;
+  } catch (error) {
+    return false;
+  }
+};

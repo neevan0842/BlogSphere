@@ -14,6 +14,7 @@ import {
 import BlogPostCard from "../components/BlogPostCard";
 import useUserStore from "../store/userStore";
 import toast from "react-hot-toast";
+import { deletePostByID } from "../api/postApi";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -34,19 +35,39 @@ const Profile = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (
-      confirm(
-        "Are you sure you want to delete your account? This action cannot be undone.",
-      )
-    ) {
-      const result = await deleteUserAccount(user?.id || "");
-      if (result) {
-        toast.success("Account deleted successfully.");
-        navigate("/");
-        logout();
-      } else {
-        toast.error("Failed to delete account. Please try again later.");
-      }
+    if (!isOwner) {
+      toast.error("You do not have permission to delete this account.");
+      return;
+    }
+    if (!confirm("Are you sure you want to delete your account?")) {
+      return;
+    }
+    const result = await deleteUserAccount(user?.id || "");
+    if (result) {
+      toast.success("Account deleted successfully.");
+      navigate("/");
+      logout();
+    } else {
+      toast.error("Failed to delete account. Please try again later.");
+    }
+  };
+
+  const handlePostDelete = async (postID: string) => {
+    if (!isOwner) {
+      toast.error("You do not have permission to delete this post.");
+      return;
+    }
+    if (!confirm("Are you sure you want to delete this post?")) {
+      return;
+    }
+    const result = await deletePostByID(postID);
+    if (result) {
+      toast.success("Post deleted successfully.");
+      setUserPosts((prevPosts) =>
+        prevPosts.filter((post) => post.id !== postID),
+      );
+    } else {
+      toast.error("Failed to delete post. Please try again later.");
     }
   };
 
@@ -240,7 +261,10 @@ const Profile = () => {
                           >
                             <Edit2 className="h-4 w-4" />
                           </Link>
-                          <button className="p-2 rounded-lg bg-background/80 text-destructive hover:bg-background transition-colors">
+                          <button
+                            onClick={() => handlePostDelete(post.id)}
+                            className="p-2 rounded-lg bg-background/80 text-destructive hover:bg-background transition-colors"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
