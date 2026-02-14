@@ -10,10 +10,25 @@ import Categories from "./pages/Categories";
 import Post from "./pages/Post";
 import { Toaster } from "react-hot-toast";
 import useThemeStore from "./store/themeStore";
+import useUserStore from "./store/userStore";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { isTokenExpired } from "./utils/auth.utils";
 
 const App = () => {
   const { theme } = useThemeStore();
+  const { isAuthenticated, clearUser } = useUserStore();
+
+  // Validate auth state on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      const refreshToken = localStorage.getItem("refresh-token");
+      if (!refreshToken || isTokenExpired(refreshToken)) {
+        clearUser();
+        localStorage.removeItem("access-token");
+        localStorage.removeItem("refresh-token");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");

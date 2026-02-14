@@ -6,15 +6,22 @@ import { refreshAccessToken } from "../api/userApi";
 
 function ProtectedRoute() {
   const { clearUser } = useUserStore();
-  const accessToken = localStorage.getItem("access-token");
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
     const auth = async () => {
-      if (!accessToken) {
+      const accessToken = localStorage.getItem("access-token");
+      const refreshToken = localStorage.getItem("refresh-token");
+
+      // Check if tokens exist and refresh token is valid
+      if (!accessToken || !refreshToken || isTokenExpired(refreshToken)) {
         setIsAuthorized(false);
+        clearUser();
+        localStorage.removeItem("access-token");
+        localStorage.removeItem("refresh-token");
         return;
       }
+
       const isExpired = isTokenExpired(accessToken);
       if (isExpired) {
         // Clear user state and tokens if the access token is expired
@@ -25,6 +32,7 @@ function ProtectedRoute() {
         const success = await refreshAccessToken();
         if (!success) {
           setIsAuthorized(false);
+          clearUser();
           return;
         }
         setIsAuthorized(true);
@@ -34,7 +42,7 @@ function ProtectedRoute() {
     };
 
     auth();
-  }, [accessToken, clearUser]);
+  }, [clearUser]);
 
   if (isAuthorized === null) {
     return (
