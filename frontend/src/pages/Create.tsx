@@ -8,8 +8,7 @@ import { getCategories } from "../api/categoryApi";
 import type { CategoryDisplay } from "../types/types";
 import { z } from "zod";
 import { createPost } from "../api/postApi";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const Create = () => {
   const navigate = useNavigate();
@@ -202,11 +201,10 @@ const Create = () => {
 
             {/* Content Textarea */}
             {isPreview ? (
-              <div className="prose prose-sm max-w-none w-full px-4 py-3 rounded-b-lg border border-t-0 border-border bg-card text-foreground min-h-90">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {body}
-                </ReactMarkdown>
-              </div>
+              <MarkdownRenderer
+                content={body}
+                className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none w-full px-4 py-3 rounded-b-lg border border-t-0 border-border bg-card min-h-90"
+              />
             ) : (
               <textarea
                 id="content"

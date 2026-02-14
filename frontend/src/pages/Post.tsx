@@ -13,6 +13,7 @@ import {
 import toast from "react-hot-toast";
 import { formatRelativeDate } from "../utils/date.utils";
 import { addCommentToPost } from "../api/commentApi";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 const Post = () => {
   const { isAuthenticated } = useUserStore();
@@ -171,33 +172,10 @@ const Post = () => {
         </header>
 
         {/* Article Content */}
-        <div className="prose prose-lg dark:prose-invert max-w-none mb-8 text-foreground">
-          {post.body.split("\n\n").map((paragraph: string, idx: number) => {
-            if (paragraph.startsWith("#")) {
-              const level = paragraph.match(/^#+/)?.[0].length || 2;
-              const text = paragraph.replace(/^#+\s*/, "");
-              const HeadingTag = `h${level}` as any;
-              return (
-                <HeadingTag
-                  key={idx}
-                  className={`font-bold my-4 ${
-                    level === 2 ? "text-2xl mt-6" : "text-xl mt-5"
-                  }`}
-                >
-                  {text}
-                </HeadingTag>
-              );
-            }
-            return (
-              <p
-                key={idx}
-                className="text-base leading-relaxed text-foreground mb-4"
-              >
-                {paragraph}
-              </p>
-            );
-          })}
-        </div>
+        <MarkdownRenderer
+          content={post.body}
+          className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mb-8"
+        />
 
         {/* Interactions */}
         <div className="border-y border-border py-6 mb-8 flex items-center gap-4">
