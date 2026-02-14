@@ -26,6 +26,15 @@ func (q *Queries) BatchCreatePostCategories(ctx context.Context, arg BatchCreate
 	return err
 }
 
+const deletePostCategoriesByPostID = `-- name: DeletePostCategoriesByPostID :exec
+DELETE FROM post_categories WHERE post_id = $1
+`
+
+func (q *Queries) DeletePostCategoriesByPostID(ctx context.Context, postID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deletePostCategoriesByPostID, postID)
+	return err
+}
+
 const getCategories = `-- name: GetCategories :many
 SELECT id, name, slug, description, icon, created_at FROM categories ORDER BY name
 `

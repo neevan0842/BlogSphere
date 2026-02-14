@@ -135,6 +135,7 @@ func (app *application) Mount() http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Use(authMiddleware.UserAuthentication)
 				r.Post("/", postHandler.HandleCreatePost)
+				r.Put("/{postID}", postHandler.HandleUpdatePost)
 				r.Delete("/{postID}", postHandler.HandleDeletePost)
 				r.Post("/{postID}/likes", postHandler.HandlePostLikes)
 			})

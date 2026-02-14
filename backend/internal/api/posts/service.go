@@ -189,3 +189,77 @@ func (s *svc) DeletePost(ctx context.Context, postID string, userID string) erro
 
 	return nil
 }
+
+func (s *svc) UpdatePost(ctx context.Context, postID string, title string, body string, categoryIDs []string, userID string) (common.PostCardDTO, error) {
+	postIDUUID, err := utils.StrToUUID(postID)
+	if err != nil {
+		return common.PostCardDTO{}, fmt.Errorf("invalid post ID: %s", err.Error())
+	}
+
+	// Fetch the post to verify ownership
+	oldPost, err := s.repo.GetPostByID(ctx, postIDUUID)
+	if err != nil {
+		return common.PostCardDTO{}, fmt.Errorf("no post found with the given ID: %s", err.Error())
+	}
+
+	// Check if the requesting user is the author of the post
+	if oldPost.AuthorID.String() != userID {
+		return common.PostCardDTO{}, fmt.Errorf("unauthorized: user does not own the post")
+	}
+
+	var updatedPost sqlc.Post
+	err = common.ExecTx(ctx, s.db, func(q *sqlc.Queries) error {
+		// Generate slug from title
+		slug := utils.GenerateSlug(title)
+
+		// Update the post
+		newPost, err := q.UpdatePost(ctx, sqlc.UpdatePostParams{
+			ID:          postIDUUID,
+			Title:       title,
+			Body:        body,
+			Slug:        slug,
+			IsPublished: oldPost.IsPublished, // Keep the published status unchanged
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update post: %s", err.Error())
+		}
+
+		// delete existing post-category associations
+		if err = q.DeletePostCategoriesByPostID(ctx, postIDUUID); err != nil {
+			return fmt.Errorf("failed to delete existing post-category associations: %s", err.Error())
+		}
+
+		// Associate post with new categories
+		postIDUUIDs := make([]pgtype.UUID, len(categoryIDs))
+		categoryIDsUUIDs := make([]pgtype.UUID, len(categoryIDs))
+		for i, catID := range categoryIDs {
+			postIDUUIDs[i] = newPost.ID
+			categoryIDsUUIDs[i], err = utils.StrToUUID(catID)
+			if err != nil {
+				return fmt.Errorf("invalid category ID: %s", err.Error())
+			}
+		}
+		err = q.BatchCreatePostCategories(ctx, sqlc.BatchCreatePostCategoriesParams{
+			PostID:     postIDUUIDs,
+			CategoryID: categoryIDsUUIDs,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to associate post with category: %s", err.Error())
+		}
+
+		updatedPost = newPost
+		return nil
+	})
+
+	if err != nil {
+		return common.PostCardDTO{}, err
+	}
+
+	// Enrich post with additional details
+	posts, err := common.EnrichPostsWithDetails(ctx, s.repo, []sqlc.Post{updatedPost}, &updatedPost.AuthorID)
+	if err != nil {
+		return common.PostCardDTO{}, err
+	}
+
+	return posts[0], nil
+}

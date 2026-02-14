@@ -18,6 +18,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteComment(ctx context.Context, id pgtype.UUID) error
 	DeletePost(ctx context.Context, id pgtype.UUID) error
+	DeletePostCategoriesByPostID(ctx context.Context, postID pgtype.UUID) error
 	DeletePostLike(ctx context.Context, arg DeletePostLikeParams) error
 	DeleteUserByID(ctx context.Context, id pgtype.UUID) error
 	GetCategories(ctx context.Context) ([]Category, error)

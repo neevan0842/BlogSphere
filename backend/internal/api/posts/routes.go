@@ -109,7 +109,7 @@ func (h *handler) HandlePostLikes(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleCreatePost(w http.ResponseWriter, r *http.Request) {
-	var payload CreatePostRequest
+	var payload CreateUpdatePostRequest
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request payload: %s", err.Error()))
 		return
@@ -145,4 +145,29 @@ func (h *handler) HandleDeletePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *handler) HandleUpdatePost(w http.ResponseWriter, r *http.Request) {
+	postID := chi.URLParam(r, "postID")
+	userID, _ := utils.GetUserIDFromContext(r.Context())
+
+	var payload CreateUpdatePostRequest
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid request payload: %s", err.Error()))
+		return
+	}
+
+	// Validate required fields
+	if err := utils.Validate.Struct(payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("validation error: %s", err.Error()))
+		return
+	}
+
+	newPost, err := h.service.UpdatePost(r.Context(), postID, payload.Title, payload.Body, payload.CategoryIDs, userID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to update post: %s", err.Error()))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, newPost)
 }

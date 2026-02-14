@@ -16,6 +16,7 @@ type Service interface {
 	togglePostLike(ctx context.Context, postID pgtype.UUID, userID pgtype.UUID) (bool, error)
 	CreatePost(ctx context.Context, title string, body string, authorID string, categoryIDs []string) (common.PostCardDTO, error)
 	DeletePost(ctx context.Context, postID string, userID string) error
+	UpdatePost(ctx context.Context, postID string, title string, body string, categoryIDs []string, userID string) (common.PostCardDTO, error)
 }
 
 type PaginatedResponse struct {
@@ -29,7 +30,7 @@ type PostLikeRequest struct {
 	PostID pgtype.UUID `json:"post_id"`
 }
 
-type CreatePostRequest struct {
+type CreateUpdatePostRequest struct {
 	Title       string   `json:"title" validate:"required,min=3,max=200"`
 	Body        string   `json:"body" validate:"required,min=10"`
 	CategoryIDs []string `json:"category_ids" validate:"required,min=1,max=3,dive,uuid"`
