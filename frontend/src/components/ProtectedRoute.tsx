@@ -32,7 +32,6 @@ function ProtectedRoute() {
         const success = await refreshAccessToken();
         if (!success) {
           setIsAuthorized(false);
-          clearUser();
           return;
         }
         setIsAuthorized(true);

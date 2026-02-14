@@ -66,3 +66,27 @@ export const togglePostLikeByPostID = async (
     return null;
   }
 };
+
+export const createPost = async ({
+  title = "",
+  body = "",
+  categoryIDs = [],
+}: {
+  title: string;
+  body: string;
+  categoryIDs: string[];
+}): Promise<PostType | null> => {
+  try {
+    const response = await api.post("/posts", {
+      title: title.trim(),
+      body: body.trim(),
+      category_ids: categoryIDs,
+    });
+    if (response.status !== 201) {
+      return null;
+    }
+    return response.data as PostType;
+  } catch (error) {
+    return null;
+  }
+};

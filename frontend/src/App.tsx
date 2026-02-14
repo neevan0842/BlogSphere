@@ -28,7 +28,7 @@ const App = () => {
         localStorage.removeItem("refresh-token");
       }
     }
-  }, []);
+  }, [isAuthenticated, clearUser]);
 
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");
