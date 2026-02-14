@@ -8,6 +8,8 @@ import { getCategories } from "../api/categoryApi";
 import type { CategoryDisplay } from "../types/types";
 import { z } from "zod";
 import { createPost } from "../api/postApi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const Create = () => {
   const navigate = useNavigate();
@@ -16,6 +18,7 @@ const Create = () => {
   const [body, setBody] = useState("");
   const [categories, setCategories] = useState<CategoryDisplay[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isPreview, setIsPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const postSchema = z.object({
     title: z
@@ -68,6 +71,12 @@ const Create = () => {
     toast.success("Post created successfully!");
     navigate(`/post/${response.slug}`);
     setIsSaving(false);
+  };
+
+  const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setBody(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = `${Math.max(360, e.target.scrollHeight)}px`;
   };
 
   const insertMarkdown = (before: string, after: string = "") => {
@@ -147,50 +156,67 @@ const Create = () => {
             </label>
 
             {/* Editor Toolbar */}
-            <div className="border border-border rounded-t-lg bg-card p-3 flex flex-wrap gap-2">
+            <div className="flex items-center justify-between bg-card border border-border rounded-t-lg px-3 py-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("**", "**")}
+                  className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
+                  title="Bold"
+                >
+                  <Bold className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("*", "*")}
+                  className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
+                  title="Italic"
+                >
+                  <Italic className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("## ")}
+                  className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
+                  title="Heading"
+                >
+                  <Heading2 className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertMarkdown("- ")}
+                  className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
+                  title="List"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => insertMarkdown("**", "**")}
-                className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
-                title="Bold"
+                onClick={() => setIsPreview((prev) => !prev)}
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
               >
-                <Bold className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown("*", "*")}
-                className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
-                title="Italic"
-              >
-                <Italic className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown("## ")}
-                className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
-                title="Heading"
-              >
-                <Heading2 className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertMarkdown("- ")}
-                className="p-2 rounded hover:bg-secondary transition-colors text-foreground"
-                title="List"
-              >
-                <List className="h-4 w-4" />
+                {isPreview ? "Edit" : "Preview"}
               </button>
             </div>
 
             {/* Content Textarea */}
-            <textarea
-              id="content"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Write your story here... You can use markdown formatting."
-              className="w-full px-4 py-3 rounded-b-lg border border-t-0 border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-              rows={15}
-            />
+            {isPreview ? (
+              <div className="prose prose-sm max-w-none w-full px-4 py-3 rounded-b-lg border border-t-0 border-border bg-card text-foreground min-h-90">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {body}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <textarea
+                id="content"
+                value={body}
+                onChange={handleBodyChange}
+                placeholder="Write your story here... You can use markdown formatting."
+                className="w-full px-4 py-3 rounded-b-lg border border-t-0 border-border bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none overflow-hidden"
+                style={{ minHeight: "360px" }}
+              />
+            )}
 
             <p className="text-xs text-muted-foreground">
               Tip: Use ** for bold, * for italic, ## for headings, and - for
