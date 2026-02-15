@@ -79,6 +79,14 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
 
+  admin:
+    image: adminer
+    restart: unless-stopped
+    depends_on: 
+      - postgres
+    ports:
+      - 8080:8080
+
 volumes:
   postgres_data:
   caddy_data:
