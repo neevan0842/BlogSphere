@@ -18,6 +18,9 @@ import (
 	mw "github.com/neevan0842/BlogSphere/backend/internal/middleware"
 	"github.com/neevan0842/BlogSphere/backend/mailer"
 	"github.com/neevan0842/BlogSphere/backend/utils"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
 
@@ -105,6 +108,14 @@ func (app *application) Mount() http.Handler {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
+
+	// prometheus metrics endpoint
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+	)
+	r.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 
 	r.Route("/api/v1", func(r chi.Router) {
 
