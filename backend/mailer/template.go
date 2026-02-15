@@ -1,62 +1,4 @@
-package utils
-
-import (
-	"context"
-	"fmt"
-	"time"
-
-	"github.com/mailersend/mailersend-go"
-	"github.com/neevan0842/BlogSphere/backend/config"
-	"go.uber.org/zap"
-)
-
-func SendWelcomeEmail(toEmail string, username string, logger *zap.SugaredLogger) error {
-	if config.Envs.MAILERSEND_API_KEY == "" || config.Envs.FROM_EMAIL == "" {
-		logger.Warn("MailerSend not configured, skipping welcome email")
-		return nil
-	}
-
-	// Create an instance of the mailersend client
-	ms := mailersend.NewMailersend(config.Envs.MAILERSEND_API_KEY)
-
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	subject := "Welcome to BlogSphere - Start Your Developer Journey!"
-	text := fmt.Sprintf(welcomeEmailTextTemplate, username)
-	html := fmt.Sprintf(welcomeEmailHTMLTemplate, username)
-
-	from := mailersend.From{
-		Name:  "BlogSphere",
-		Email: config.Envs.FROM_EMAIL,
-	}
-
-	recipients := []mailersend.Recipient{
-		{
-			Name:  username,
-			Email: toEmail,
-		},
-	}
-
-	message := ms.Email.NewMessage()
-
-	message.SetFrom(from)
-	message.SetRecipients(recipients)
-	message.SetSubject(subject)
-	message.SetHTML(html)
-	message.SetText(text)
-
-	// Send the email with error handling
-	res, err := ms.Email.Send(ctx, message)
-	if err != nil {
-		logger.Errorf("Failed to send welcome email to %s: %v", toEmail, err)
-		return err
-	}
-
-	logger.Infof("Welcome email sent to %s successfully: %v", toEmail, res)
-	return nil
-}
+package mailer
 
 const welcomeEmailTextTemplate = `Hi %s,
 
@@ -136,53 +78,6 @@ const welcomeEmailHTMLTemplate = `<!DOCTYPE html>
 	</div>
 </body>
 </html>`
-
-func SendAccountDeletionEmail(toEmail string, username string, logger *zap.SugaredLogger) error {
-	if config.Envs.MAILERSEND_API_KEY == "" || config.Envs.FROM_EMAIL == "" {
-		logger.Warn("MailerSend not configured, skipping account deletion email")
-		return nil
-	}
-
-	// Create an instance of the mailersend client
-	ms := mailersend.NewMailersend(config.Envs.MAILERSEND_API_KEY)
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	subject := "Your BlogSphere Account Has Been Deleted"
-	text := fmt.Sprintf(accountDeletionEmailTextTemplate, username)
-	html := fmt.Sprintf(accountDeletionEmailHTMLTemplate, username)
-
-	from := mailersend.From{
-		Name:  "BlogSphere",
-		Email: config.Envs.FROM_EMAIL,
-	}
-
-	recipients := []mailersend.Recipient{
-		{
-			Name:  username,
-			Email: toEmail,
-		},
-	}
-
-	message := ms.Email.NewMessage()
-
-	message.SetFrom(from)
-	message.SetRecipients(recipients)
-	message.SetSubject(subject)
-	message.SetHTML(html)
-	message.SetText(text)
-
-	// Send the email with error handling
-	res, err := ms.Email.Send(ctx, message)
-	if err != nil {
-		logger.Errorf("Failed to send account deletion email to %s: %v", toEmail, err)
-		return err
-	}
-
-	logger.Infof("Account deletion email sent to %s successfully: %v", toEmail, res)
-	return nil
-}
 
 const accountDeletionEmailTextTemplate = `Hi %s,
 

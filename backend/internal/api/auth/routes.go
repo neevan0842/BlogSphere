@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/neevan0842/BlogSphere/backend/config"
+	"github.com/neevan0842/BlogSphere/backend/mailer"
 	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -14,6 +15,7 @@ import (
 type handler struct {
 	service Service
 	logger  *zap.SugaredLogger
+	mail    *mailer.Mailer
 }
 
 var googleOauthConfig = &oauth2.Config{
@@ -24,10 +26,11 @@ var googleOauthConfig = &oauth2.Config{
 	Endpoint:     google.Endpoint,
 }
 
-func NewHandler(service Service, logger *zap.SugaredLogger) *handler {
+func NewHandler(service Service, logger *zap.SugaredLogger, mail *mailer.Mailer) *handler {
 	return &handler{
 		service: service,
 		logger:  logger,
+		mail:    mail,
 	}
 }
 
@@ -84,7 +87,7 @@ func (h *handler) HandleGoogleAuthCallback(w http.ResponseWriter, r *http.Reques
 
 	// send welcome email
 	if isNewUser && user.Username.Valid && user.Email != "" {
-		go utils.SendWelcomeEmail(user.Email, user.Username.String, h.logger)
+		go h.mail.SendWelcomeEmail(user.Email, user.Username.String)
 	}
 
 	utils.WriteJSON(w, http.StatusOK, map[string]string{

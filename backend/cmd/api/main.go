@@ -7,6 +7,7 @@ import (
 	"github.com/neevan0842/BlogSphere/backend/database"
 	"github.com/neevan0842/BlogSphere/backend/internal"
 	"github.com/neevan0842/BlogSphere/backend/logger"
+	"github.com/neevan0842/BlogSphere/backend/mailer"
 )
 
 func main() {
@@ -30,8 +31,11 @@ func main() {
 	}
 	log.Info("connected to database pool successfully")
 
+	// Mailer
+	mail := mailer.NewMailer(log)
+
 	// API Server
-	server := internal.NewAPIServer(config.Envs.ADDR, pool, log)
+	server := internal.NewAPIServer(config.Envs.ADDR, pool, log, mail)
 
 	// Run the server
 	log.Fatal(server.Run(server.Mount()))

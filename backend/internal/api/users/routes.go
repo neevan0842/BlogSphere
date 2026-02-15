@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
 	"github.com/neevan0842/BlogSphere/backend/internal/common"
+	"github.com/neevan0842/BlogSphere/backend/mailer"
 	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 )
@@ -16,13 +17,15 @@ type handler struct {
 	service Service
 	logger  *zap.SugaredLogger
 	repo    *sqlc.Queries
+	mail    *mailer.Mailer
 }
 
-func NewHandler(service Service, logger *zap.SugaredLogger, repo *sqlc.Queries) *handler {
+func NewHandler(service Service, logger *zap.SugaredLogger, repo *sqlc.Queries, mail *mailer.Mailer) *handler {
 	return &handler{
 		service: service,
 		logger:  logger,
 		repo:    repo,
+		mail:    mail,
 	}
 }
 
@@ -164,7 +167,7 @@ func (h *handler) HandleDeleteCurrentUser(w http.ResponseWriter, r *http.Request
 	}
 
 	// send account deletion email
-	go utils.SendAccountDeletionEmail(user.Email, user.Username.String, h.logger)
+	go h.mail.SendAccountDeletionEmail(user.Email, user.Username.String)
 
 	// Return 204 No Content without response body
 	w.WriteHeader(http.StatusNoContent)

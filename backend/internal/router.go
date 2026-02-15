@@ -15,8 +15,8 @@ import (
 	"github.com/neevan0842/BlogSphere/backend/internal/api/comments"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/posts"
 	"github.com/neevan0842/BlogSphere/backend/internal/api/users"
-
 	mw "github.com/neevan0842/BlogSphere/backend/internal/middleware"
+	"github.com/neevan0842/BlogSphere/backend/mailer"
 	"github.com/neevan0842/BlogSphere/backend/utils"
 	"go.uber.org/zap"
 )
@@ -25,6 +25,7 @@ type application struct {
 	config config
 	logger *zap.SugaredLogger
 	db     *pgxpool.Pool
+	mail   *mailer.Mailer
 }
 
 type config struct {
@@ -32,7 +33,7 @@ type config struct {
 	dsn  string
 }
 
-func NewAPIServer(addr string, db *pgxpool.Pool, logger *zap.SugaredLogger) *application {
+func NewAPIServer(addr string, db *pgxpool.Pool, logger *zap.SugaredLogger, mail *mailer.Mailer) *application {
 	return &application{
 		config: config{
 			addr: addr,
@@ -40,6 +41,7 @@ func NewAPIServer(addr string, db *pgxpool.Pool, logger *zap.SugaredLogger) *app
 		},
 		db:     db,
 		logger: logger,
+		mail:   mail,
 	}
 }
 
@@ -83,10 +85,10 @@ func (app *application) Mount() http.Handler {
 	repo := sqlc.New(app.db)
 
 	authService := auth.NewService(repo, app.db)
-	authHandler := auth.NewHandler(authService, app.logger)
+	authHandler := auth.NewHandler(authService, app.logger, app.mail)
 
 	userService := users.NewService(repo, app.db)
-	userHandler := users.NewHandler(userService, app.logger, repo)
+	userHandler := users.NewHandler(userService, app.logger, repo, app.mail)
 
 	postService := posts.NewService(repo, app.db)
 	postHandler := posts.NewHandler(postService, app.logger, repo)
