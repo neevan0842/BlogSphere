@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      # use docker compose --env-file ./backend/.env.prod up for interpolation of env vars
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/database/migrations:/migrations
+    command: [
+        "-path",
+        "/migrations",
+        "-database",
+        # use docker compose --env-file ./backend/.env.prod up for interpolation of env vars
+        "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable",
+        "up",
+      ]
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    env_file:
+      - ./frontend/.env.prod
+    volumes:
+      - dist:/app/dist
+
+  caddy:
+    image: caddy:2.11
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    depends_on:
+      - frontend
+      - backend
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - dist:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  postgres_data:
+  dist:
+  caddy_data:
+  caddy_config:

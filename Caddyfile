@@ -1,0 +1,13 @@
+blogsphere.mine.bz {
+    root * /srv
+    encode zstd gzip
+    file_server
+
+    # Serve index.html for unknown routes (React SPA Fix)
+    try_files {path} /index.html
+}
+
+api.blogsphere.mine.bz {
+    reverse_proxy backend:8080
+    encode zstd gzip
+}
