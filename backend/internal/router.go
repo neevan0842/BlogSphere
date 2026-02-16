@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 	"github.com/jackc/pgx/v5/pgxpool"
 	envs "github.com/neevan0842/BlogSphere/backend/config"
 	"github.com/neevan0842/BlogSphere/backend/database/sqlc"
@@ -78,6 +79,9 @@ func (app *application) Mount() http.Handler {
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
+
+	// rate limiting middleware
+	r.Use(httprate.LimitByIP(100, time.Minute))
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
