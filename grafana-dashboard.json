@@ -66,7 +66,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(http_request_total[1m])",
+          "expr": "rate(http_requests_total[1m])",
           "interval": "",
           "legendFormat": "{{method}} {{path}}",
           "refId": "A"
@@ -351,7 +351,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "process_cpu_usage",
+          "expr": "rate(process_cpu_seconds_total[1m]) * 100",
           "interval": "",
           "legendFormat": "CPU Usage",
           "refId": "A"

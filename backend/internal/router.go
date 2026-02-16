@@ -82,6 +82,8 @@ func (app *application) Mount() http.Handler {
 
 	// rate limiting middleware
 	r.Use(httprate.LimitByIP(100, time.Minute))
+	// prometheus metrics middleware
+	r.Use(mw.PrometheusMiddleware)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
@@ -118,6 +120,9 @@ func (app *application) Mount() http.Handler {
 	reg.MustRegister(
 		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+		// register your application metrics
+		utils.HttpRequestsTotal,
+		utils.HttpRequestDuration,
 	)
 	r.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 
