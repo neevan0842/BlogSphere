@@ -22,7 +22,8 @@ def get_db_connection():
     Establish database connection using environment variables.
     Supports both DB_* and POSTGRES_* naming conventions.
     """
-    host = os.getenv("DB_HOST") or os.getenv("POSTGRES_HOST", "localhost")
+    # host = os.getenv("DB_HOST") or os.getenv("POSTGRES_HOST", "localhost")
+    host = "localhost"
     port = os.getenv("DB_PORT") or os.getenv("POSTGRES_PORT", "5432")
     user = os.getenv("DB_USER") or os.getenv("POSTGRES_USER")
     password = os.getenv("DB_PASSWORD") or os.getenv("POSTGRES_PASSWORD")
