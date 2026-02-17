@@ -20,6 +20,10 @@ BlogSphere is a full-featured blogging platform for creating, sharing, and manag
 
 ---
 
+## Architecture Diagram
+
+![BlogSphere Architecture](static/architecture.png)
+
 ## Project Structure
 
 - **backend/** – Go API server, database, migrations, internal logic, mailer, logger, utils
